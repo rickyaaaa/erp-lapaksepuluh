@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Mock halaman barang masuk ERP Lapak Sepuluh" />
+  <title>Barang Masuk · L10</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navigasi utama">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">L10</div>
+        <div><p class="brand-name">Lapak Sepuluh</p><p class="brand-subtitle">Operasional cabang</p></div>
+      </div>
+      <div class="branch-switcher">
+        <span class="eyebrow">Cabang aktif</span>
+        <button class="branch-button" type="button" aria-label="Cabang aktif, buka pilihan cabang">
+          <span class="branch-dot" aria-hidden="true"></span>
+          <span class="branch-copy"><strong>Cabang Cempaka</strong><small>Kasir · akses terbatas</small></span>
+          <span class="chevron" aria-hidden="true">⌄</span>
+        </button>
+      </div>
+      <nav class="main-nav">
+        <span class="nav-label">Operasional</span>
+        <a class="nav-item active" href="#inbound" aria-current="page"><span class="nav-icon" aria-hidden="true">↘</span><span>Barang masuk</span><span class="nav-status">Aktif</span></a>
+        <a class="nav-item" href="opname.html"><span class="nav-icon" aria-hidden="true">▦</span><span>Stok opname</span></a>
+        <a class="nav-item" href="closing.html"><span class="nav-icon" aria-hidden="true">◴</span><span>Blind closing</span></a>
+        <span class="nav-label nav-label-spaced">Pantauan</span>
+        <a class="nav-item" href="#history"><span class="nav-icon" aria-hidden="true">≡</span><span>Riwayat hari ini</span></a>
+        <a class="nav-item" href="#help"><span class="nav-icon" aria-hidden="true">?</span><span>Panduan singkat</span></a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="operating-window"><span class="window-icon" aria-hidden="true">◷</span><div><small>Jendela input pagi</small><strong>05.00 – 07.00 WIB</strong></div></div>
+        <button class="profile-button" type="button"><span class="avatar">RA</span><span><strong>Rina Amelia</strong><small>Kasir cabang</small></span><span class="more-icon" aria-hidden="true">•••</span></button>
+      </div>
+    </aside>
+
+    <main class="main-content" id="inbound">
+      <header class="topbar"><div class="breadcrumb"><span>Operasional</span><span class="breadcrumb-separator">/</span><strong>Barang masuk</strong></div><div class="topbar-meta"><span class="sync-status"><span class="sync-dot" aria-hidden="true"></span>Data tersimpan otomatis</span><button class="icon-button" type="button" aria-label="Notifikasi"><span aria-hidden="true">♢</span><span class="notification-dot"></span></button></div></header>
+      <div class="content-wrap">
+        <section class="page-heading" aria-labelledby="page-title">
+          <div><p class="date-line"><span class="calendar-icon" aria-hidden="true">□</span> Selasa, 24 November 2026 <span class="date-separator">·</span> Shift pagi</p><h1 id="page-title">Catat barang masuk</h1><p class="heading-copy">Masukkan jumlah titipan yang tiba pagi ini. Periksa ringkasan sebelum menyimpan.</p></div>
+          <div class="time-card" aria-label="Waktu tersisa untuk input pagi"><span class="time-card-label">Input terbuka sampai</span><strong>07.00 WIB</strong><span class="time-card-note"><span class="green-pulse" aria-hidden="true"></span>Masih terbuka</span></div>
+        </section>
+        <div class="notice" role="status"><span class="notice-icon" aria-hidden="true">i</span><p><strong>Harga dan komisi mengikuti snapshot hari ini.</strong> Perubahan setelah disimpan tidak mengubah histori.</p><button class="notice-close" type="button" aria-label="Tutup informasi">×</button></div>
+
+        <section class="workspace-grid">
+          <div class="form-column">
+            <div class="section-head"><div><h2>Daftar barang titipan</h2><p>Pilih mitra, lalu isi jumlah yang diterima per produk.</p></div><span class="required-note"><span aria-hidden="true">*</span> Wajib diisi</span></div>
+            <div class="partner-field"><label for="partner-select">Mitra</label><div class="select-wrap"><select id="partner-select"><option value="all">Semua mitra · 4 produk aktif</option><option value="dapur-nusa">Dapur Nusa · 2 produk</option><option value="pawon-ibu">Pawon Ibu · 1 produk</option><option value="manis-loka">Manis Loka · 1 produk</option></select></div></div>
+            <div class="product-table-card"><div class="product-table-head" aria-hidden="true"><span>Produk</span><span>Harga</span><span>Komisi</span><span>Jumlah tiba</span></div><div class="product-list" id="product-list"></div><div class="empty-filter" id="empty-filter" hidden><span class="empty-icon" aria-hidden="true">⌕</span><strong>Belum ada produk untuk mitra ini</strong><p>Pilih mitra lain untuk melanjutkan pencatatan.</p></div><button class="add-row-button" type="button" id="add-row-button"><span aria-hidden="true">＋</span> Tambah produk lain</button></div>
+            <div class="proof-section"><div class="section-head proof-head"><div><h2>Bukti serah terima</h2><p>Foto logbook atau surat serah terima dari mitra.</p></div><span class="optional-note">Opsional untuk draft</span></div><label class="upload-zone" for="proof-file"><span class="upload-icon" aria-hidden="true">↑</span><span><strong>Unggah foto bukti</strong><small>JPG atau PNG · maksimal 5 MB</small></span><span class="upload-action">Pilih file</span><input id="proof-file" type="file" accept="image/png,image/jpeg" /></label><div class="file-preview" id="file-preview" hidden><span class="file-preview-icon" aria-hidden="true">▧</span><span class="file-preview-name" id="file-preview-name"></span><button type="button" class="remove-file" id="remove-file" aria-label="Hapus file">×</button></div></div>
+          </div>
+
+          <aside class="summary-column" aria-label="Ringkasan barang masuk"><div class="summary-card"><div class="summary-card-top"><span class="summary-label">Ringkasan input</span><span class="draft-badge" id="summary-status">Draft</span></div><div class="summary-date">24 Nov 2026 · Cabang Cempaka</div><div class="summary-total"><strong id="summary-total">0</strong><span>unit diterima</span></div><div class="summary-meta"><span id="summary-products">0 produk</span><span class="meta-separator">·</span><span id="summary-partners">0 mitra</span></div><div class="summary-rule"></div><div class="summary-breakdown" id="summary-breakdown"></div><div class="summary-footer-note"><span class="shield-icon" aria-hidden="true">◈</span><span>Snapshot harga &amp; komisi akan disimpan saat dikonfirmasi.</span></div><div class="final-state" id="final-state" hidden><span class="final-state-icon" aria-hidden="true">✓</span><div><strong>Masuk Final siap untuk stok opname</strong><p>Data ini akan menjadi acuan Sisa Final setelah input dikunci pukul 07.00 WIB.</p></div></div></div><div class="next-step-card"><span class="next-step-icon" aria-hidden="true">→</span><div><strong>Setelah disimpan</strong><p>Data bisa diperiksa di <a href="#history">Riwayat hari ini</a> sebelum input dikunci pukul 07.00.</p></div></div></aside>
+        </section>
+        <footer class="action-bar"><div class="action-helper"><span class="save-indicator" aria-hidden="true"></span><span id="save-message">Perubahan tersimpan otomatis sebagai draft</span></div><div class="action-buttons"><button class="secondary-button" type="button" id="reset-button">Kosongkan</button><button class="primary-button" type="button" id="save-button">Simpan barang masuk <span aria-hidden="true">→</span></button></div></footer>
+      </div>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-check" aria-hidden="true">✓</span><span id="toast-message">Draft barang masuk tersimpan.</span></div>
+  <script src="app.js"></script>
+</body>
+</html>
+

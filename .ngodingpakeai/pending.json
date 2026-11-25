@@ -1,0 +1,276 @@
+{
+  "repo": "erp lapak 10",
+  "generatedForCommit": null,
+  "files": [
+    {
+      "path": ".claude/skills/ngodingpakeai/SKILL.md",
+      "reason": "needs_summary",
+      "language": "markdown",
+      "size": 19096
+    },
+    {
+      "path": ".codex/skills/ngodingpakeai/SKILL.md",
+      "reason": "needs_summary",
+      "language": "markdown",
+      "size": 19096
+    },
+    {
+      "path": ".impeccable/questions/roll.json",
+      "reason": "needs_summary",
+      "language": "json",
+      "size": 68
+    },
+    {
+      "path": ".ngodingpakeaiignore",
+      "reason": "needs_summary",
+      "language": null,
+      "size": 269
+    },
+    {
+      "path": "AGENTS.md",
+      "reason": "needs_summary",
+      "language": "markdown",
+      "size": 18850
+    },
+    {
+      "path": "app/Console/Commands/LockMorningInbounds.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1592
+    },
+    {
+      "path": "app/Http/Controllers/Api/DailyClosingController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 9853
+    },
+    {
+      "path": "app/Http/Controllers/Api/InboundOptionsController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 13391
+    },
+    {
+      "path": "app/Http/Controllers/Api/StockOpnameController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 13284
+    },
+    {
+      "path": "app/Http/Middleware/EnsureBranchAccess.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 841
+    },
+    {
+      "path": "app/Services/DailyClosingCalculator.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1026
+    },
+    {
+      "path": "app.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 6626
+    },
+    {
+      "path": "approvals.css",
+      "reason": "needs_summary",
+      "language": "css",
+      "size": 2566
+    },
+    {
+      "path": "approvals.html",
+      "reason": "needs_summary",
+      "language": "html",
+      "size": 3083
+    },
+    {
+      "path": "approvals.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 3419
+    },
+    {
+      "path": "audit.css",
+      "reason": "needs_summary",
+      "language": "css",
+      "size": 2508
+    },
+    {
+      "path": "audit.html",
+      "reason": "needs_summary",
+      "language": "html",
+      "size": 2988
+    },
+    {
+      "path": "audit.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 2343
+    },
+    {
+      "path": "closing.css",
+      "reason": "needs_summary",
+      "language": "css",
+      "size": 2560
+    },
+    {
+      "path": "closing.html",
+      "reason": "needs_summary",
+      "language": "html",
+      "size": 7132
+    },
+    {
+      "path": "closing.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 2256
+    },
+    {
+      "path": "database/migrations/2026_11_25_000001_create_inbounds_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1581
+    },
+    {
+      "path": "database/migrations/2026_11_25_000002_create_inbound_items_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1535
+    },
+    {
+      "path": "database/migrations/2026_11_25_000003_create_stock_opnames_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1819
+    },
+    {
+      "path": "database/migrations/2026_11_25_000004_create_opname_items_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2430
+    },
+    {
+      "path": "database/migrations/2026_11_25_000005_create_daily_closings_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2166
+    },
+    {
+      "path": "database/migrations/2026_11_25_000006_create_closing_expenses_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1313
+    },
+    {
+      "path": "database/migrations/2026_11_25_000007_create_closing_attachments_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1256
+    },
+    {
+      "path": "erp-lapak-sepuluh-PRD.md",
+      "reason": "needs_summary",
+      "language": "markdown",
+      "size": 68896
+    },
+    {
+      "path": "index.html",
+      "reason": "needs_summary",
+      "language": "html",
+      "size": 8094
+    },
+    {
+      "path": "opname.css",
+      "reason": "needs_summary",
+      "language": "css",
+      "size": 3599
+    },
+    {
+      "path": "opname.html",
+      "reason": "needs_summary",
+      "language": "html",
+      "size": 4524
+    },
+    {
+      "path": "opname.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 4570
+    },
+    {
+      "path": "payout.css",
+      "reason": "changed",
+      "language": "css",
+      "size": 5142
+    },
+    {
+      "path": "payout.html",
+      "reason": "changed",
+      "language": "html",
+      "size": 4917
+    },
+    {
+      "path": "payout.js",
+      "reason": "changed",
+      "language": "javascript",
+      "size": 5383
+    },
+    {
+      "path": "PRODUCT.md",
+      "reason": "needs_summary",
+      "language": "markdown",
+      "size": 2299
+    },
+    {
+      "path": "routes/api.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2306
+    },
+    {
+      "path": "routes/console.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 143
+    },
+    {
+      "path": "server.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 777
+    },
+    {
+      "path": "styles.css",
+      "reason": "needs_summary",
+      "language": "css",
+      "size": 19415
+    },
+    {
+      "path": "tests/Unit/DailyClosingCalculatorTest.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1319
+    },
+    {
+      "path": "verification.css",
+      "reason": "needs_summary",
+      "language": "css",
+      "size": 7784
+    },
+    {
+      "path": "verification.html",
+      "reason": "needs_summary",
+      "language": "html",
+      "size": 6880
+    },
+    {
+      "path": "verification.js",
+      "reason": "needs_summary",
+      "language": "javascript",
+      "size": 6574
+    }
+  ]
+}
