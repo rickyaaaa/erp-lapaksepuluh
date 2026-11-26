@@ -61,10 +61,24 @@ class DailyClosingController
         $expenses = DB::table('closing_expenses')
             ->where('daily_closing_id', $record->id)
             ->orderBy('created_at')
-            ->get(['id', 'category', 'amount', 'description', 'is_valid', 'proof_path']);
+            ->get(['id', 'category', 'amount', 'description', 'is_valid', 'proof_path'])
+            ->map(fn ($expense): array => [
+                'id' => (int) $expense->id,
+                'category' => $expense->category,
+                'amount' => (int) $expense->amount,
+                'description' => $expense->description,
+                'is_valid' => (bool) $expense->is_valid,
+                'proof_url' => $expense->proof_path ? Storage::disk('public')->url($expense->proof_path) : null,
+            ]);
         $attachments = DB::table('closing_attachments')
             ->where('daily_closing_id', $record->id)
-            ->get(['id', 'type', 'file_path', 'uploaded_at']);
+            ->get(['id', 'type', 'file_path', 'uploaded_at'])
+            ->map(fn ($attachment): array => [
+                'id' => (int) $attachment->id,
+                'type' => $attachment->type,
+                'uploaded_at' => $attachment->uploaded_at,
+                'file_url' => Storage::disk('public')->url($attachment->file_path),
+            ]);
 
         return response()->json([
             'data' => [
@@ -83,6 +97,22 @@ class DailyClosingController
                 'attachments' => $attachments,
             ],
         ]);
+    }
+
+    public function evidence(Request $request, int $closing, int $attachment): mixed
+    {
+        $branchId = (int) $request->attributes->get('authorized_branch_id');
+        $record = DB::table('closing_attachments')
+            ->join('daily_closings', 'daily_closings.id', '=', 'closing_attachments.daily_closing_id')
+            ->where('closing_attachments.id', $attachment)
+            ->where('closing_attachments.daily_closing_id', $closing)
+            ->where('daily_closings.branch_id', $branchId)
+            ->first(['closing_attachments.file_path']);
+
+        abort_unless($record !== null, 404, 'Bukti tidak ditemukan.');
+        abort_unless(Storage::disk('public')->exists($record->file_path), 404, 'File bukti tidak ditemukan.');
+
+        return Storage::disk('public')->download($record->file_path);
     }
 
     public function submit(Request $request, int $closing): JsonResponse

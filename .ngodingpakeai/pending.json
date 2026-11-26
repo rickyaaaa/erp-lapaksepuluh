@@ -1,6 +1,6 @@
 {
   "repo": "erp lapak 10",
-  "generatedForCommit": null,
+  "generatedForCommit": "ba5eee345bd14bb5cf838f110ab0894ab6bb050a",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -39,10 +39,28 @@
       "size": 1592
     },
     {
+      "path": "app/Http/Controllers/Api/BankMutationController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2279
+    },
+    {
+      "path": "app/Http/Controllers/Api/BookClosingController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2091
+    },
+    {
+      "path": "app/Http/Controllers/Api/CorrectionController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 10256
+    },
+    {
       "path": "app/Http/Controllers/Api/DailyClosingController.php",
       "reason": "needs_summary",
       "language": "php",
-      "size": 9853
+      "size": 11408
     },
     {
       "path": "app/Http/Controllers/Api/InboundOptionsController.php",
@@ -51,10 +69,22 @@
       "size": 13391
     },
     {
+      "path": "app/Http/Controllers/Api/PayoutController.php",
+      "reason": "changed",
+      "language": "php",
+      "size": 10360
+    },
+    {
       "path": "app/Http/Controllers/Api/StockOpnameController.php",
       "reason": "needs_summary",
       "language": "php",
       "size": 13284
+    },
+    {
+      "path": "app/Http/Controllers/Api/VerificationController.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 7740
     },
     {
       "path": "app/Http/Middleware/EnsureBranchAccess.php",
@@ -67,6 +97,12 @@
       "reason": "needs_summary",
       "language": "php",
       "size": 1026
+    },
+    {
+      "path": "app/Services/PayoutAggregationService.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 2192
     },
     {
       "path": "app.js",
@@ -171,6 +207,66 @@
       "size": 1256
     },
     {
+      "path": "database/migrations/2026_11_25_000008_create_correction_requests_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1772
+    },
+    {
+      "path": "database/migrations/2026_11_25_000009_create_audit_trails_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1284
+    },
+    {
+      "path": "database/migrations/2026_11_25_000010_create_book_closings_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1260
+    },
+    {
+      "path": "database/migrations/2026_11_25_000011_create_bank_mutations_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1744
+    },
+    {
+      "path": "database/migrations/2026_11_25_000012_make_audit_trails_immutable.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 903
+    },
+    {
+      "path": "database/migrations/2026_11_25_000013_enforce_book_closing_state_machine.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1283
+    },
+    {
+      "path": "database/migrations/2026_11_25_000014_add_payout_impact_to_correction_requests.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 925
+    },
+    {
+      "path": "database/migrations/2026_11_25_000015_create_correction_adjustments_table.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 1621
+    },
+    {
+      "path": "database/migrations/2026_11_25_000016_create_payout_tables.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 3388
+    },
+    {
+      "path": "database/migrations/2026_11_25_000017_prevent_duplicate_payout_payments.php",
+      "reason": "needs_summary",
+      "language": "php",
+      "size": 617
+    },
+    {
       "path": "erp-lapak-sepuluh-PRD.md",
       "reason": "needs_summary",
       "language": "markdown",
@@ -202,19 +298,19 @@
     },
     {
       "path": "payout.css",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "css",
       "size": 5142
     },
     {
       "path": "payout.html",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "html",
       "size": 4917
     },
     {
       "path": "payout.js",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "javascript",
       "size": 5383
     },
@@ -225,10 +321,16 @@
       "size": 2299
     },
     {
+      "path": "README.md",
+      "reason": "needs_summary",
+      "language": "markdown",
+      "size": 20
+    },
+    {
       "path": "routes/api.php",
       "reason": "needs_summary",
       "language": "php",
-      "size": 2306
+      "size": 4811
     },
     {
       "path": "routes/console.php",
