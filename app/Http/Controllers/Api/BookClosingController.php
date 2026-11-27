@@ -10,6 +10,7 @@ class BookClosingController
 {
     public function validateClosing(Request $request, int $bookClosing): JsonResponse
     {
+        abort_unless($request->user()->hasPermission('closing.verify'), 403, 'Permission validasi closing tidak mencukupi.');
         $validated = $request->validate(['note' => ['nullable', 'string', 'max:500']]);
         $branchId = (int) $request->attributes->get('authorized_branch_id');
         $record = DB::table('book_closings')

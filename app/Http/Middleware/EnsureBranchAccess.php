@@ -15,11 +15,7 @@ class EnsureBranchAccess
         abort_if($branchId < 1, 422, 'branch_id wajib diisi.');
 
         $user = $request->user();
-        $hasAccess = (int) $user->home_branch_id === $branchId
-            || DB::table('user_branches')
-                ->where('user_id', $user->id)
-                ->where('branch_id', $branchId)
-                ->exists();
+        $hasAccess = $user->canAccessBranch($branchId);
 
         abort_unless($hasAccess, 403, 'Anda tidak memiliki akses ke cabang ini.');
 
@@ -28,3 +24,4 @@ class EnsureBranchAccess
         return $next($request);
     }
 }
+

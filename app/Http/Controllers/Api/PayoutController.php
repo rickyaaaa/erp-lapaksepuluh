@@ -91,6 +91,7 @@ class PayoutController
 
     public function markPaid(Request $request, int $cycle, int $partner): JsonResponse
     {
+        abort_unless($request->user()->hasPermission('payout.mark_paid'), 403, 'Permission pembayaran payout tidak mencukupi.');
         $validated = $request->validate([
             'amount' => ['required', 'integer', 'min:1'],
             'bank_reference' => ['required', 'string', 'max:120', 'regex:/^[A-Za-z0-9][A-Za-z0-9._\/-]{5,119}$/'],
@@ -107,6 +108,9 @@ class PayoutController
         $proofPath = $request->file('proof')->store('payout-proofs', 'local');
 
         DB::transaction(function () use ($validated, $proofPath, $cycle, $partner, $items, $request): void {
+            $cycleRecord = DB::table('payout_cycles')->where('id', $cycle)->lockForUpdate()->first(['id', 'status']);
+            abort_unless($cycleRecord !== null && in_array($cycleRecord->status, ['LOCKED', 'PAID'], true), 409, 'Siklus payout tidak dapat diubah.');
+            abort_if(DB::table('payout_payments')->where('payout_cycle_id', $cycle)->where('partner_id', $partner)->exists(), 409, 'Payout mitra pada siklus ini sudah dibayar.');
             $paymentId = DB::table('payout_payments')->insertGetId([
                 'payout_cycle_id' => $cycle, 'partner_id' => $partner, 'amount' => $validated['amount'],
                 'bank_reference' => $validated['bank_reference'], 'proof_path' => $proofPath,

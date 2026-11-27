@@ -10,6 +10,7 @@ class BankMutationController
 {
     public function confirm(Request $request, int $mutation): JsonResponse
     {
+        abort_unless($request->user()->hasPermission('bank.confirm'), 403, 'Permission konfirmasi bank tidak mencukupi.');
         $branchId = (int) $request->attributes->get('authorized_branch_id');
         $record = DB::table('bank_mutations')->where('id', $mutation)->where('branch_id', $branchId)->first();
         abort_unless($record !== null, 404, 'Mutasi bank tidak ditemukan.');

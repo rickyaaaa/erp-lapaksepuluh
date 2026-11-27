@@ -20,6 +20,7 @@ class CorrectionController
 
     public function store(Request $request): JsonResponse
     {
+        abort_unless($request->user()->hasPermission('correction.request'), 403, 'Permission pengajuan koreksi tidak mencukupi.');
         $data = $request->validate([
             'entity_type' => ['required', 'string', 'max:40'],
             'entity_id' => ['required', 'integer', 'min:1'],
@@ -44,9 +45,11 @@ class CorrectionController
 
     public function review(Request $request, int $correction): JsonResponse
     {
+        abort_unless($request->user()->hasPermission('correction.approve'), 403, 'Permission approval koreksi tidak mencukupi.');
         $data = $request->validate(['decision' => ['required', 'in:APPROVED,REJECTED'], 'review_note' => ['nullable', 'string', 'required_if:decision,REJECTED', 'min:5']]);
         $row = DB::table('correction_requests')->where('id', $correction)->where('branch_id', $request->attributes->get('authorized_branch_id'))->first();
         abort_if(!$row, 404);
+        abort_if((int) $row->requested_by === (int) $request->user()->id, 403, 'Requester tidak boleh menyetujui koreksinya sendiri.');
         abort_if($row->status !== 'PENDING', 422, 'Correction sudah direview.');
 
         DB::transaction(function () use ($correction, $data, $request, $row): void {
@@ -68,6 +71,7 @@ class CorrectionController
 
     public function apply(Request $request, int $correction): JsonResponse
     {
+        abort_unless($request->user()->hasPermission('correction.apply'), 403, 'Permission penerapan koreksi tidak mencukupi.');
         $branchId = (int) $request->attributes->get('authorized_branch_id');
         $row = DB::table('correction_requests')->where('id', $correction)->where('branch_id', $branchId)->first();
         abort_unless($row !== null, 404, 'Pengajuan koreksi tidak ditemukan.');
