@@ -29,8 +29,8 @@ return new class extends Migration
             $table->unique(['branch_id', 'business_date'], 'stock_opnames_branch_date_unique');
         });
 
-        DB::statement("ALTER TABLE stock_opnames ADD CONSTRAINT stock_opnames_status_check CHECK (status IN ('DRAFT', 'SUBMITTED', 'VERIFIED', 'REJECTED'))");
-        DB::statement('ALTER TABLE stock_opnames ADD CONSTRAINT stock_opnames_totals_check CHECK (total_gross >= 0 AND total_commission >= 0 AND total_net >= 0)');
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE stock_opnames ADD CONSTRAINT stock_opnames_status_check CHECK (status IN ('DRAFT', 'SUBMITTED', 'VERIFIED', 'REJECTED'))"); }
+        if (DB::getDriverName() === 'pgsql') { DB::statement('ALTER TABLE stock_opnames ADD CONSTRAINT stock_opnames_totals_check CHECK (total_gross >= 0 AND total_commission >= 0 AND total_net >= 0)'); }
     }
 
     public function down(): void

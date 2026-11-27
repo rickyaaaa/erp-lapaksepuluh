@@ -31,7 +31,7 @@ return new class extends Migration
             $table->index(['entity_type', 'entity_id'], 'corrections_entity_index');
         });
 
-        DB::statement("ALTER TABLE correction_requests ADD CONSTRAINT correction_requests_status_check CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED'))");
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE correction_requests ADD CONSTRAINT correction_requests_status_check CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED'))"); }
     }
 
     public function down(): void

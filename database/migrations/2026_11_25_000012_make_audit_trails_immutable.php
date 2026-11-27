@@ -7,6 +7,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
         DB::statement(<<<'SQL'
             CREATE OR REPLACE FUNCTION reject_audit_trail_mutation()
             RETURNS trigger AS $$
@@ -24,7 +27,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        DB::statement('DROP TRIGGER IF EXISTS audit_trails_immutable_trigger ON audit_trails');
-        DB::statement('DROP FUNCTION IF EXISTS reject_audit_trail_mutation()');
+        if (DB::getDriverName() === 'pgsql') { DB::statement('DROP TRIGGER IF EXISTS audit_trails_immutable_trigger ON audit_trails'); }
+        if (DB::getDriverName() === 'pgsql') { DB::statement('DROP FUNCTION IF EXISTS reject_audit_trail_mutation()'); }
     }
 };

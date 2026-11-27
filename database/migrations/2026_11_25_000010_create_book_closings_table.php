@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreign('closed_by')->references('id')->on('users')->nullOnDelete();
             $table->unique(['branch_id', 'period_start', 'period_end'], 'book_closings_period_unique');
         });
-        DB::statement("ALTER TABLE book_closings ADD CONSTRAINT book_closings_status_check CHECK (status IN ('OPEN', 'CLOSED', 'REOPENED'))");
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE book_closings ADD CONSTRAINT book_closings_status_check CHECK (status IN ('OPEN', 'CLOSED', 'REOPENED'))"); }
     }
 
     public function down(): void

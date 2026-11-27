@@ -53,8 +53,8 @@ return new class extends Migration
             $table->foreign('partner_id')->references('id')->on('partners')->restrictOnDelete();
             $table->foreign('paid_by')->references('id')->on('users')->restrictOnDelete();
         });
-        DB::statement("ALTER TABLE payout_cycles ADD CONSTRAINT payout_cycles_status_check CHECK (status IN ('DRAFT', 'READY', 'LOCKED', 'PAID'))");
-        DB::statement("ALTER TABLE payout_items ADD CONSTRAINT payout_items_status_check CHECK (status IN ('READY', 'EXCLUDED', 'PAID'))");
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE payout_cycles ADD CONSTRAINT payout_cycles_status_check CHECK (status IN ('DRAFT', 'READY', 'LOCKED', 'PAID'))"); }
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE payout_items ADD CONSTRAINT payout_items_status_check CHECK (status IN ('READY', 'EXCLUDED', 'PAID'))"); }
     }
 
     public function down(): void

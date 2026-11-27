@@ -22,8 +22,8 @@ return new class extends Migration
             $table->foreign('correction_request_id')->references('id')->on('correction_requests')->cascadeOnDelete();
             $table->foreign('created_by')->references('id')->on('users')->restrictOnDelete();
         });
-        DB::statement("ALTER TABLE correction_requests ADD CONSTRAINT correction_requests_payout_status_check CHECK (payout_status IN ('NOT_PAID', 'PAID'))");
-        DB::statement("ALTER TABLE correction_adjustments ADD CONSTRAINT correction_adjustments_status_check CHECK (status IN ('PENDING', 'APPLIED', 'SETTLED'))");
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE correction_requests ADD CONSTRAINT correction_requests_payout_status_check CHECK (payout_status IN ('NOT_PAID', 'PAID'))"); }
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE correction_adjustments ADD CONSTRAINT correction_adjustments_status_check CHECK (status IN ('PENDING', 'APPLIED', 'SETTLED'))"); }
     }
 
     public function down(): void

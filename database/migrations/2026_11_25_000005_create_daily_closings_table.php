@@ -34,8 +34,8 @@ return new class extends Migration
             $table->unique(['branch_id', 'business_date'], 'daily_closings_branch_date_unique');
         });
 
-        DB::statement("ALTER TABLE daily_closings ADD CONSTRAINT daily_closings_difference_status_check CHECK (difference_status IN ('KLOP', 'MINUS', 'PLUS'))");
-        DB::statement("ALTER TABLE daily_closings ADD CONSTRAINT daily_closings_status_check CHECK (status IN ('DRAFT', 'SUBMITTED', 'VERIFIED', 'LOCKED_SETTLED', 'REJECTED'))");
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE daily_closings ADD CONSTRAINT daily_closings_difference_status_check CHECK (difference_status IN ('KLOP', 'MINUS', 'PLUS'))"); }
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE daily_closings ADD CONSTRAINT daily_closings_status_check CHECK (status IN ('DRAFT', 'SUBMITTED', 'VERIFIED', 'LOCKED_SETTLED', 'REJECTED'))"); }
     }
 
     public function down(): void

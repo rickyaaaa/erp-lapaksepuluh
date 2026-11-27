@@ -28,7 +28,7 @@ return new class extends Migration
             $table->index(['branch_id', 'business_date'], 'inbounds_branch_date_index');
         });
 
-        DB::statement("ALTER TABLE inbounds ADD CONSTRAINT inbounds_status_check CHECK (status IN ('DRAFT', 'LOCKED', 'CORRECTED'))");
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE inbounds ADD CONSTRAINT inbounds_status_check CHECK (status IN ('DRAFT', 'LOCKED', 'CORRECTED'))"); }
     }
 
     public function down(): void

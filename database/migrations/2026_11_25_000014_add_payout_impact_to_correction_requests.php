@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('payout_impact', 20)->default('UNKNOWN')->after('review_note');
             $table->bigInteger('payout_delta')->default(0)->after('payout_impact');
         });
-        DB::statement("ALTER TABLE correction_requests ADD CONSTRAINT correction_requests_payout_impact_check CHECK (payout_impact IN ('UNKNOWN', 'INCREASE', 'DECREASE', 'UNCHANGED', 'BLOCKED'))");
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE correction_requests ADD CONSTRAINT correction_requests_payout_impact_check CHECK (payout_impact IN ('UNKNOWN', 'INCREASE', 'DECREASE', 'UNCHANGED', 'BLOCKED'))"); }
     }
 
     public function down(): void

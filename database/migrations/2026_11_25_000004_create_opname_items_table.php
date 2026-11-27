@@ -34,10 +34,10 @@ return new class extends Migration
             $table->index(['product_id', 'partner_id'], 'opname_items_product_partner_index');
         });
 
-        DB::statement('ALTER TABLE opname_items ADD CONSTRAINT opname_items_remaining_check CHECK (qty_remaining_final <= qty_in_final)');
-        DB::statement('ALTER TABLE opname_items ADD CONSTRAINT opname_items_damaged_check CHECK (qty_damaged <= qty_remaining_final)');
-        DB::statement('ALTER TABLE opname_items ADD CONSTRAINT opname_items_sold_check CHECK (qty_sold = qty_in_final - qty_remaining_final)');
-        DB::statement('ALTER TABLE opname_items ADD CONSTRAINT opname_items_amounts_check CHECK (gross_amount >= 0 AND commission_amount >= 0 AND net_amount >= 0)');
+        if (DB::getDriverName() === 'pgsql') { DB::statement('ALTER TABLE opname_items ADD CONSTRAINT opname_items_remaining_check CHECK (qty_remaining_final <= qty_in_final)'); }
+        if (DB::getDriverName() === 'pgsql') { DB::statement('ALTER TABLE opname_items ADD CONSTRAINT opname_items_damaged_check CHECK (qty_damaged <= qty_remaining_final)'); }
+        if (DB::getDriverName() === 'pgsql') { DB::statement('ALTER TABLE opname_items ADD CONSTRAINT opname_items_sold_check CHECK (qty_sold = qty_in_final - qty_remaining_final)'); }
+        if (DB::getDriverName() === 'pgsql') { DB::statement('ALTER TABLE opname_items ADD CONSTRAINT opname_items_amounts_check CHECK (gross_amount >= 0 AND commission_amount >= 0 AND net_amount >= 0)'); }
     }
 
     public function down(): void

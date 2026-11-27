@@ -24,9 +24,9 @@ return new class extends Migration
             $table->index('product_id', 'inbound_items_product_index');
         });
 
-        DB::statement('ALTER TABLE inbound_items ADD CONSTRAINT inbound_items_qty_in_check CHECK (qty_in > 0)');
-        DB::statement('ALTER TABLE inbound_items ADD CONSTRAINT inbound_items_price_snapshot_check CHECK (price_snapshot >= 0)');
-        DB::statement('ALTER TABLE inbound_items ADD CONSTRAINT inbound_items_commission_snapshot_check CHECK (commission_snapshot >= 0)');
+        if (DB::getDriverName() === 'pgsql') { DB::statement('ALTER TABLE inbound_items ADD CONSTRAINT inbound_items_qty_in_check CHECK (qty_in > 0)'); }
+        if (DB::getDriverName() === 'pgsql') { DB::statement('ALTER TABLE inbound_items ADD CONSTRAINT inbound_items_price_snapshot_check CHECK (price_snapshot >= 0)'); }
+        if (DB::getDriverName() === 'pgsql') { DB::statement('ALTER TABLE inbound_items ADD CONSTRAINT inbound_items_commission_snapshot_check CHECK (commission_snapshot >= 0)'); }
     }
 
     public function down(): void

@@ -23,7 +23,7 @@ return new class extends Migration
             $table->index(['daily_closing_id', 'type'], 'closing_attachments_closing_type_index');
         });
 
-        DB::statement("ALTER TABLE closing_attachments ADD CONSTRAINT closing_attachments_type_check CHECK (type IN ('bukti_tunai', 'bukti_qris_settlement', 'logbook', 'lain'))");
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE closing_attachments ADD CONSTRAINT closing_attachments_type_check CHECK (type IN ('bukti_tunai', 'bukti_qris_settlement', 'logbook', 'lain'))"); }
     }
 
     public function down(): void

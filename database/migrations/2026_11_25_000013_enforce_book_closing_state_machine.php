@@ -7,6 +7,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
         DB::statement(<<<'SQL'
             CREATE OR REPLACE FUNCTION enforce_book_closing_state_machine()
             RETURNS trigger AS $$
@@ -30,7 +33,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        DB::statement('DROP TRIGGER IF EXISTS book_closings_state_machine_trigger ON book_closings');
-        DB::statement('DROP FUNCTION IF EXISTS enforce_book_closing_state_machine()');
+        if (DB::getDriverName() === 'pgsql') { DB::statement('DROP TRIGGER IF EXISTS book_closings_state_machine_trigger ON book_closings'); }
+        if (DB::getDriverName() === 'pgsql') { DB::statement('DROP FUNCTION IF EXISTS enforce_book_closing_state_machine()'); }
     }
 };

@@ -27,8 +27,8 @@ return new class extends Migration
             $table->foreign('confirmed_by')->references('id')->on('users')->nullOnDelete();
             $table->index(['branch_id', 'mutation_date'], 'bank_mutations_branch_date_index');
         });
-        DB::statement("ALTER TABLE bank_mutations ADD CONSTRAINT bank_mutations_direction_check CHECK (direction IN ('IN', 'OUT'))");
-        DB::statement("ALTER TABLE bank_mutations ADD CONSTRAINT bank_mutations_status_check CHECK (status IN ('UNMATCHED', 'MATCHED', 'CONFIRMED'))");
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE bank_mutations ADD CONSTRAINT bank_mutations_direction_check CHECK (direction IN ('IN', 'OUT'))"); }
+        if (DB::getDriverName() === 'pgsql') { DB::statement("ALTER TABLE bank_mutations ADD CONSTRAINT bank_mutations_status_check CHECK (status IN ('UNMATCHED', 'MATCHED', 'CONFIRMED'))"); }
     }
 
     public function down(): void
