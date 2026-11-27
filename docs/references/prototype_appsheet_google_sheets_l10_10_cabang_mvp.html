@@ -1,0 +1,2703 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prototype AppSheet & Google Sheets L10 — 10 Cabang MVP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom subtle scrollbars for mobile mockup and spreadsheet grid */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ===================================================================== -->
+  <!-- TOP CONTROL HEADER: ROLE SWITCHER, SIMULATED CLOCK & LAYOUT TOGGLE    -->
+  <!-- ===================================================================== -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
+      
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-emerald-800 text-white font-extrabold text-sm flex items-center justify-center shadow-xs shrink-0">
+          L10
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-slate-900 text-sm sm:text-base leading-tight">Lapak Sepuluh MVP</h1>
+            <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">10 Cabang • Zero-Fraud</span>
+          </div>
+          <p class="text-[11px] text-slate-500">Simulasi Interaktif AppSheet + Live 11-Tab Google Sheets</p>
+        </div>
+      </div>
+
+      <!-- Simulator Controls Group -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        
+        <!-- 1. Role & Akun Switcher (14 Akun Tetap) -->
+        <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5">
+          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Akun (14):</span>
+          <select id="roleAccountSelect" onchange="handleAccountSwitch(this.value)" class="bg-transparent text-xs sm:text-sm font-semibold text-emerald-900 focus:outline-none cursor-pointer pr-1">
+            <optgroup label="Kasir Cabang (10 Akun Perangkat + PIN)">
+              <option value="kasir.cb01@l10.id" selected>Kasir CB-01 (Kuningan Kota)</option>
+              <option value="kasir.cb02@l10.id">Kasir CB-02 (Cilimus)</option>
+              <option value="kasir.cb03@l10.id">Kasir CB-03 (Cigugur)</option>
+              <option value="kasir.cb04@l10.id">Kasir CB-04 (Ciawigebang)</option>
+              <option value="kasir.cb05@l10.id">Kasir CB-05 (Jalaksana)</option>
+              <option value="kasir.cb06@l10.id">Kasir CB-06 (Kramatmulya)</option>
+              <option value="kasir.cb07@l10.id">Kasir CB-07 (Kadugede)</option>
+              <option value="kasir.cb08@l10.id">Kasir CB-08 (Luragung)</option>
+              <option value="kasir.cb09@l10.id">Kasir CB-09 (Garawangi)</option>
+              <option value="kasir.cb10@l10.id">Kasir CB-10 (Sindangagung)</option>
+            </optgroup>
+            <optgroup label="Supervisor Klaster (2 Akun • Rasio 1:5)">
+              <option value="spv1@l10.id">SPV Klaster 1 (CB-01 s.d. CB-05)</option>
+              <option value="spv2@l10.id">SPV Klaster 2 (CB-06 s.d. CB-10)</option>
+            </optgroup>
+            <optgroup label="Manajemen Pusat (2 Akun)">
+              <option value="ziyaad.owner@l10.id">Manager / Owner (Ziyaad)</option>
+              <option value="admin.pusat@l10.id">Admin Pusat L10</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- 2. Simulasi Jam Operasional (Time-Gate Tester) -->
+        <div class="flex items-center gap-1 bg-amber-50/80 border border-amber-200 rounded-xl p-1 overflow-x-auto">
+          <span class="text-[10px] font-bold text-amber-800 uppercase px-1.5 hidden xl:inline">Jam WIB:</span>
+          <button onclick="setSimTime('06:00')" id="time-btn-06:00" class="time-btn px-2 py-1 rounded-lg text-[11px] font-semibold transition whitespace-nowrap">06:00 Subuh</button>
+          <button onclick="setSimTime('11:15')" id="time-btn-11:15" class="time-btn px-2 py-1 rounded-lg text-[11px] font-semibold transition whitespace-nowrap">11:15 Opname</button>
+          <button onclick="setSimTime('11:30')" id="time-btn-11:30" class="time-btn px-2 py-1 rounded-lg text-[11px] font-semibold transition whitespace-nowrap">11:30 Sheet Sisa</button>
+          <button onclick="setSimTime('12:45')" id="time-btn-12:45" class="time-btn px-2 py-1 rounded-lg text-[11px] font-semibold transition whitespace-nowrap">12:45 Closing</button>
+          <button onclick="setSimTime('14:15')" id="time-btn-14:15" class="time-btn px-2 py-1 rounded-lg text-[11px] font-semibold transition whitespace-nowrap">14:15 Kunci/Mutasi</button>
+        </div>
+
+        <!-- 3. Workspace Layout Toggle -->
+        <div class="flex items-center bg-slate-100 border border-slate-200 rounded-xl p-1">
+          <button onclick="setWorkspaceMode('split')" id="ws-btn-split" class="ws-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition">Split View</button>
+          <button onclick="setWorkspaceMode('app')" id="ws-btn-app" class="ws-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition">AppSheet</button>
+          <button onclick="setWorkspaceMode('sheet')" id="ws-btn-sheet" class="ws-btn px-2.5 py-1 rounded-lg text-xs font-semibold transition">GSheet (11 Tab)</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Active Time-Gate Rule Info Banner -->
+    <div class="bg-emerald-950 text-emerald-100 px-3 sm:px-5 py-1.5 text-[11px] flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+        <span id="timeRuleText" class="truncate">Simulasi 06:00 WIB (Inbound Subuh) — Dropdown per Mitra (LS01..LS08) + Foto Bukti Penerimaan (Opsional) + Dashboard Produk Live per Kategori Mitra.</span>
+      </div>
+      <span class="font-mono text-[10px] text-emerald-300 shrink-0 hidden sm:inline">Siklus Aktif: 23–25 Nov 2026 (Sen–Rab)</span>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN WORKSPACE: APPSHEET MOBILE PROTOTYPE (LEFT) + GSHEET (RIGHT)     -->
+  <!-- ===================================================================== -->
+  <main class="max-w-[1600px] w-full mx-auto px-3 sm:px-5 py-4 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+
+    <!-- =================================================================== -->
+    <!-- LEFT COLUMN: APPSHEET MOBILE APPLICATION PROTOTYPE                  -->
+    <!-- =================================================================== -->
+    <section id="appsheetPane" class="lg:col-span-5 xl:col-span-4 flex flex-col items-center">
+      <!-- Mobile Device Shell -->
+      <div class="w-full max-w-[430px] bg-slate-900 rounded-[2.2rem] p-2.5 shadow-xl border border-slate-800">
+        <div class="bg-slate-50 rounded-[1.75rem] overflow-hidden flex flex-col h-[740px] border border-slate-200">
+          
+          <!-- Phone Status Bar -->
+          <div class="bg-emerald-900 text-white px-4 pt-2 pb-1 flex items-center justify-between text-[11px] font-mono">
+            <span id="phoneClockDisplay" class="font-bold">06:00 WIB</span>
+            <div class="flex items-center gap-1.5">
+              <span class="px-1.5 py-0.2 bg-emerald-800 rounded text-[9px] text-emerald-200">AppSheet Live</span>
+              <span>📶 🔋</span>
+            </div>
+          </div>
+
+          <!-- AppSheet App Top Navigation Bar -->
+          <div class="bg-emerald-800 text-white px-4 py-3 flex items-center justify-between gap-2 shadow-xs shrink-0">
+            <div class="min-w-0">
+              <h2 id="appHeaderTitle" class="font-bold text-sm truncate">Lapak Sepuluh • CB-01</h2>
+              <p id="appHeaderSubtitle" class="text-[11px] text-emerald-200 truncate">Kasir Perangkat CB-01 (Kuningan Kota)</p>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button id="lockPinBtn" onclick="lockKasirPin()" title="Kunci PIN Cabang" class="hidden px-2 py-1 rounded-lg bg-emerald-950/60 hover:bg-emerald-950 text-emerald-100 text-[10px] font-semibold border border-emerald-700 transition">
+                🔒 Kunci
+              </button>
+              <button onclick="triggerManualSync()" title="Sync AppSheet ke Google Sheets" class="p-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Scrollable AppScreen Content -->
+          <div id="appScreenBody" class="flex-1 overflow-y-auto p-3 space-y-3 bg-slate-100/80">
+            <!-- Rendered dynamically via JS -->
+          </div>
+
+          <!-- AppSheet Bottom Tab Bar -->
+          <nav id="appBottomNav" class="bg-white border-t border-slate-200 px-1.5 py-1.5 grid grid-cols-4 gap-1 shrink-0">
+            <!-- Rendered dynamically via JS -->
+          </nav>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- RIGHT COLUMN: GOOGLE SHEETS 11-TAB RELATIONAL DATABASE BACKEND      -->
+    <!-- =================================================================== -->
+    <section id="gsheetPane" class="lg:col-span-7 xl:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[760px]">
+      
+      <!-- Google Sheets Top Chrome -->
+      <div class="bg-slate-50 border-b border-slate-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-xs sm:text-sm text-slate-800">L10_ERP_MVP_10CABANG_INDUK.gsheet</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold">11 Tab Relasional</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Backend Database & Rumus Otomatis AppSheet</p>
+          </div>
+        </div>
+
+        <!-- Google Sheets Toolbar Actions -->
+        <div class="flex items-center gap-2">
+          <!-- Sync Status Indicator -->
+          <button onclick="triggerManualSync()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold">
+            <svg id="syncIcon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span id="syncLabel">Synced</span>
+          </button>
+
+          <!-- View Data vs Schema/Formulas Toggle -->
+          <div class="flex items-center bg-slate-200/80 p-0.5 rounded-lg text-[11px] font-semibold">
+            <button id="sheet-mode-data" onclick="setSheetSubMode('data')" class="px-2.5 py-1 rounded-md bg-white text-emerald-800 shadow-sm">Data Live</button>
+            <button id="sheet-mode-schema" onclick="setSheetSubMode('schema')" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900">Skema & Rumus</button>
+          </div>
+
+          <!-- Export Active Sheet CSV -->
+          <button onclick="downloadActiveSheetCSV()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-semibold transition">
+            ⬇️ CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Google Sheets fx Formula Bar -->
+      <div class="bg-white border-b border-slate-200 px-3 py-1.5 flex items-center gap-2 text-xs shrink-0">
+        <span class="font-mono font-bold text-slate-400 italic select-none px-1.5 border-r border-slate-200">fx</span>
+        <code id="gsheetFormulaBar" class="font-mono text-[11px] text-emerald-900 truncate flex-1">
+          =ARRAYFORMULA(IF(ISBLANK(KOREKSI_MASUK_SPV), MASUK_KASIR, KOREKSI_MASUK_SPV))
+        </code>
+      </div>
+
+      <!-- Google Sheets Main Scrollable Grid -->
+      <div id="gsheetTableWrapper" class="flex-1 overflow-auto bg-white">
+        <!-- Rendered dynamically via JS -->
+      </div>
+
+      <!-- Google Sheets Bottom Tab Strip (11 Tabs) -->
+      <div class="bg-slate-100 border-t border-slate-200 px-2 py-1.5 flex items-center gap-1 overflow-x-auto shrink-0" id="gsheetTabStrip">
+        <!-- Rendered dynamically via JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- CUSTOM MODALS & TOAST NOTIFICATIONS (NO ALERT / CONFIRM USED)         -->
+  <!-- ===================================================================== -->
+  <div id="customModalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-emerald-800 text-white px-4 py-3 flex items-center justify-between">
+        <h3 id="modalTitle" class="font-bold text-sm">Pratinjau Spreadsheet Laporan Sisa</h3>
+        <button onclick="closeCustomModal()" class="text-emerald-200 hover:text-white text-lg font-bold leading-none">&times;</button>
+      </div>
+      <div id="modalBody" class="p-4 space-y-3 max-h-[75vh] overflow-y-auto text-xs sm:text-sm">
+        <!-- Dynamic Modal Content -->
+      </div>
+      <div id="modalFooter" class="bg-slate-50 border-t border-slate-200 px-4 py-2.5 flex items-center justify-end gap-2">
+        <!-- Dynamic Modal Buttons -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT APPLICATION STATE, BUSINESS LOGIC & RENDER ENGINE          -->
+  <!-- ===================================================================== -->
+  <script>
+    // =========================================================================
+    // 1. MASTER RELATIONAL DATABASE STATE (11 TAB GOOGLE SHEETS + APPSHEET)
+    // =========================================================================
+    const TODAY_DATE = "2026-11-24"; // Selasa (dalam siklus Sen-Rab: 23-25 Nov 2026)
+    const YESTERDAY_DATE = "2026-11-23"; // Senin (sudah LOCKED_SETTLED)
+    const CYCLE_CODE = "2026-NOV-W4-SEN-RAB";
+    const CYCLE_START = "2026-11-23";
+    const CYCLE_END = "2026-11-25";
+
+    const db = {
+      // TAB 0: 0_MASTER_USER_PARAM (14 Akun Tetap + Global Param Komisi)
+      users: [
+        { Email_User: "kasir.cb01@l10.id", Nama_User: "Kasir Perangkat CB-01 (Kuningan Kota)", Role: "KASIR", Cabang_Akses: "CB-01", PIN_Cabang: "102938", Komisi_Aktif_Global: 1500 },
+        { Email_User: "kasir.cb02@l10.id", Nama_User: "Kasir Perangkat CB-02 (Cilimus)", Role: "KASIR", Cabang_Akses: "CB-02", PIN_Cabang: "203948", Komisi_Aktif_Global: 1500 },
+        { Email_User: "kasir.cb03@l10.id", Nama_User: "Kasir Perangkat CB-03 (Cigugur)", Role: "KASIR", Cabang_Akses: "CB-03", PIN_Cabang: "304958", Komisi_Aktif_Global: 1500 },
+        { Email_User: "kasir.cb04@l10.id", Nama_User: "Kasir Perangkat CB-04 (Ciawigebang)", Role: "KASIR", Cabang_Akses: "CB-04", PIN_Cabang: "405968", Komisi_Aktif_Global: 1500 },
+        { Email_User: "kasir.cb05@l10.id", Nama_User: "Kasir Perangkat CB-05 (Jalaksana)", Role: "KASIR", Cabang_Akses: "CB-05", PIN_Cabang: "506978", Komisi_Aktif_Global: 1500 },
+        { Email_User: "kasir.cb06@l10.id", Nama_User: "Kasir Perangkat CB-06 (Kramatmulya)", Role: "KASIR", Cabang_Akses: "CB-06", PIN_Cabang: "607988", Komisi_Aktif_Global: 1500 },
+        { Email_User: "kasir.cb07@l10.id", Nama_User: "Kasir Perangkat CB-07 (Kadugede)", Role: "KASIR", Cabang_Akses: "CB-07", PIN_Cabang: "708998", Komisi_Aktif_Global: 1500 },
+        { Email_User: "kasir.cb08@l10.id", Nama_User: "Kasir Perangkat CB-08 (Luragung)", Role: "KASIR", Cabang_Akses: "CB-08", PIN_Cabang: "809908", Komisi_Aktif_Global: 1500 },
+        { Email_User: "kasir.cb09@l10.id", Nama_User: "Kasir Perangkat CB-09 (Garawangi)", Role: "KASIR", Cabang_Akses: "CB-09", PIN_Cabang: "901918", Komisi_Aktif_Global: 1500 },
+        { Email_User: "kasir.cb10@l10.id", Nama_User: "Kasir Perangkat CB-10 (Sindangagung)", Role: "KASIR", Cabang_Akses: "CB-10", PIN_Cabang: "100928", Komisi_Aktif_Global: 1500 },
+        { Email_User: "spv1@l10.id", Nama_User: "SPV Klaster 1 (Rizky Pratama)", Role: "SPV", Cabang_Akses: "CB-01,CB-02,CB-03,CB-04,CB-05", PIN_Cabang: "-", Komisi_Aktif_Global: 1500 },
+        { Email_User: "spv2@l10.id", Nama_User: "SPV Klaster 2 (Deni Kurniawan)", Role: "SPV", Cabang_Akses: "CB-06,CB-07,CB-08,CB-09,CB-10", PIN_Cabang: "-", Komisi_Aktif_Global: 1500 },
+        { Email_User: "ziyaad.owner@l10.id", Nama_User: "Ziyaad Rizqulloh (Owner / Manager)", Role: "MANAGER_OWNER", Cabang_Akses: "ALL (CB-01..CB-10)", PIN_Cabang: "-", Komisi_Aktif_Global: 1500 },
+        { Email_User: "admin.pusat@l10.id", Nama_User: "Admin Pusat L10", Role: "ADMIN_PUSAT", Cabang_Akses: "ALL (CB-01..CB-10)", PIN_Cabang: "-", Komisi_Aktif_Global: 1500 }
+      ],
+
+      // TAB 1: 1_MASTER_MITRA (Kode Berurut Ketat LS01 s.d. LS08)
+      mitra: [
+        { ID_MITRA: "LS01", Nama_Mitra: "Zahra Jauza N", No_WA_Mitra: "6281223344501", Bank_Tujuan: "BNI", No_Rekening: "0812345678", Nama_Pemilik_Rek: "ZAHRA JAUZA N", Biaya_Admin_Bank: 0, Status_Mitra: "AKTIF" },
+        { ID_MITRA: "LS02", Nama_Mitra: "Siti Aminah", No_WA_Mitra: "6281223344502", Bank_Tujuan: "BRI", No_Rekening: "009801002233401", Nama_Pemilik_Rek: "SITI AMINAH", Biaya_Admin_Bank: 0, Status_Mitra: "AKTIF" },
+        { ID_MITRA: "LS03", Nama_Mitra: "Dedi Kurniawan", No_WA_Mitra: "6281223344503", Bank_Tujuan: "BRI", No_Rekening: "009801003344501", Nama_Pemilik_Rek: "DEDI KURNIAWAN", Biaya_Admin_Bank: 0, Status_Mitra: "AKTIF" },
+        { ID_MITRA: "LS04", Nama_Mitra: "Nisa Nurhasanah", No_WA_Mitra: "6281223344504", Bank_Tujuan: "BRI", No_Rekening: "009801009876502", Nama_Pemilik_Rek: "NISA NURHASANAH", Biaya_Admin_Bank: 0, Status_Mitra: "AKTIF" },
+        { ID_MITRA: "LS05", Nama_Mitra: "Budi Santoso", No_WA_Mitra: "6281223344505", Bank_Tujuan: "BRI", No_Rekening: "009801001234501", Nama_Pemilik_Rek: "BUDI SANTOSO", Biaya_Admin_Bank: 0, Status_Mitra: "AKTIF" },
+        { ID_MITRA: "LS06", Nama_Mitra: "Rina Marlina", No_WA_Mitra: "6281223344506", Bank_Tujuan: "BNI", No_Rekening: "0822334455", Nama_Pemilik_Rek: "RINA MARLINA", Biaya_Admin_Bank: 0, Status_Mitra: "AKTIF" },
+        { ID_MITRA: "LS07", Nama_Mitra: "Ahmad Fauzi", No_WA_Mitra: "6281223344507", Bank_Tujuan: "BRI", No_Rekening: "009801007788901", Nama_Pemilik_Rek: "AHMAD FAUZI", Biaya_Admin_Bank: 0, Status_Mitra: "AKTIF" },
+        { ID_MITRA: "LS08", Nama_Mitra: "Dewi Lestari", No_WA_Mitra: "6281223344508", Bank_Tujuan: "BCA", No_Rekening: "1340987654", Nama_Pemilik_Rek: "DEWI LESTARI", Biaya_Admin_Bank: 2500, Status_Mitra: "AKTIF" }
+      ],
+
+      // TAB 2: 2_MASTER_SKU_CABANG (Terurut rapi dari LS01 s.d. LS08)
+      skuCabang: [
+        // CB-01 (Memuat lengkap LS01 s.d. LS08 agar urutan & pengelompokan per mitra terlihat jelas)
+        { ID_SKU_CABANG: "CB01-LS01-01", Cabang_ID: "CB-01", ID_MITRA: "LS01", Nama_Produk: "Bento Chicken Katsu", Harga_Jual: 15000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB01-LS01-02", Cabang_ID: "CB-01", ID_MITRA: "LS01", Nama_Produk: "Salad Buah Yoghurt Cup", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB01-LS02-01", Cabang_ID: "CB-01", ID_MITRA: "LS02", Nama_Produk: "Nasi Kuning Telur Balado", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB01-LS03-01", Cabang_ID: "CB-01", ID_MITRA: "LS03", Nama_Produk: "Bubur Ayam Kampung Spesial", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB01-LS04-01", Cabang_ID: "CB-01", ID_MITRA: "LS04", Nama_Produk: "Lontong Kari Sapi", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB01-LS04-02", Cabang_ID: "CB-01", ID_MITRA: "LS04", Nama_Produk: "Kroket Kentang Keju", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB01-LS05-01", Cabang_ID: "CB-01", ID_MITRA: "LS05", Nama_Produk: "Nasi Uduk Ayam Suwir", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB01-LS06-01", Cabang_ID: "CB-01", ID_MITRA: "LS06", Nama_Produk: "Dimsum Ayam Udang (Isi 4)", Harga_Jual: 15000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB01-LS07-01", Cabang_ID: "CB-01", ID_MITRA: "LS07", Nama_Produk: "Mie Goreng Jawa Telur", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB01-LS08-01", Cabang_ID: "CB-01", ID_MITRA: "LS08", Nama_Produk: "Spaghetti Brulee Panggang", Harga_Jual: 15000, Status_SKU: "AKTIF" },
+
+        // CB-02 (Termasuk LS05 Budi Santoso dengan SKU & harga berbeda Rp 15.000)
+        { ID_SKU_CABANG: "CB02-LS01-01", Cabang_ID: "CB-02", ID_MITRA: "LS01", Nama_Produk: "Chicken Teriyaki Rice Bowl", Harga_Jual: 15000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB02-LS05-01", Cabang_ID: "CB-02", ID_MITRA: "LS05", Nama_Produk: "Risoles Mayo Lumer (Isi 4)", Harga_Jual: 15000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB02-LS08-01", Cabang_ID: "CB-02", ID_MITRA: "LS08", Nama_Produk: "Nasi Bakar Cakalang", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+
+        // CB-03 (Termasuk LS05 Budi Santoso dengan SKU & harga berbeda Rp 15.000)
+        { ID_SKU_CABANG: "CB03-LS02-01", Cabang_ID: "CB-03", ID_MITRA: "LS02", Nama_Produk: "Nasi Tutug Oncom Komplit", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB03-LS05-01", Cabang_ID: "CB-03", ID_MITRA: "LS05", Nama_Produk: "Ayam Suwir Kemangi Box", Harga_Jual: 15000, Status_SKU: "AKTIF" },
+
+        // CB-04..CB-10
+        { ID_SKU_CABANG: "CB04-LS01-01", Cabang_ID: "CB-04", ID_MITRA: "LS01", Nama_Produk: "Bento Chicken Katsu", Harga_Jual: 15000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB04-LS04-01", Cabang_ID: "CB-04", ID_MITRA: "LS04", Nama_Produk: "Lontong Kari Sapi", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB05-LS03-01", Cabang_ID: "CB-05", ID_MITRA: "LS03", Nama_Produk: "Bubur Ayam Kampung Spesial", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB06-LS06-01", Cabang_ID: "CB-06", ID_MITRA: "LS06", Nama_Produk: "Dimsum Ayam Udang (Isi 4)", Harga_Jual: 15000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB07-LS05-01", Cabang_ID: "CB-07", ID_MITRA: "LS05", Nama_Produk: "Nasi Uduk Ayam Suwir", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB08-LS07-01", Cabang_ID: "CB-08", ID_MITRA: "LS07", Nama_Produk: "Mie Goreng Jawa Telur", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB09-LS04-01", Cabang_ID: "CB-09", ID_MITRA: "LS04", Nama_Produk: "Kroket Kentang Keju", Harga_Jual: 10000, Status_SKU: "AKTIF" },
+        { ID_SKU_CABANG: "CB10-LS08-01", Cabang_ID: "CB-10", ID_MITRA: "LS08", Nama_Produk: "Nasi Liwet Teri Medan", Harga_Jual: 15000, Status_SKU: "AKTIF" }
+      ],
+
+      // TAB 3: 3_BUKTI_INBOUND_SUBUH (Foto Bukti Penerimaan Barang - OPSIONAL)
+      inboundSubuh: [
+        { ID_INBOUND: "20261124-CB-01-LS01", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS01", Foto_Bukti_Penerimaan: "CAM_TERIMA_CB01_LS01_0542.jpg", Waktu_Input_Subuh: "2026-11-24 05:42:10" },
+        { ID_INBOUND: "20261124-CB-01-LS02", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS02", Foto_Bukti_Penerimaan: "(Tanpa Foto - Opsional)", Waktu_Input_Subuh: "2026-11-24 05:46:00" },
+        { ID_INBOUND: "20261124-CB-01-LS05", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS05", Foto_Bukti_Penerimaan: "CAM_TERIMA_CB01_LS05_0554.jpg", Waktu_Input_Subuh: "2026-11-24 05:54:18" },
+        { ID_INBOUND: "20261124-CB-02-LS05", Tanggal: TODAY_DATE, Cabang_ID: "CB-02", ID_MITRA: "LS05", Foto_Bukti_Penerimaan: "CAM_TERIMA_CB02_LS05_0548.jpg", Waktu_Input_Subuh: "2026-11-24 05:48:22" }
+      ],
+
+      // TAB 4: 4_TRANSAKSI_HARIAN (Terurut LS01 s.d. LS08)
+      transaksi: [
+        // --- YESTERDAY (2026-11-23) LOCKED_SETTLED ---
+        { ID_TRX: "20261123-CB01-LS01-01", Tanggal: YESTERDAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS01", ID_SKU_CABANG: "CB01-LS01-01", Harga_Snapshot: 15000, Komisi_Snapshot: 1500, MASUK_KASIR: 35, KOREKSI_MASUK_SPV: null, SISA_KASIR: 5, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261123-CB01-LS04-01", Tanggal: YESTERDAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS04", ID_SKU_CABANG: "CB01-LS04-01", Harga_Snapshot: 10000, Komisi_Snapshot: 1500, MASUK_KASIR: 45, KOREKSI_MASUK_SPV: null, SISA_KASIR: 5, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261123-CB01-LS05-01", Tanggal: YESTERDAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS05", ID_SKU_CABANG: "CB01-LS05-01", Harga_Snapshot: 10000, Komisi_Snapshot: 1500, MASUK_KASIR: 50, KOREKSI_MASUK_SPV: null, SISA_KASIR: 0, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261123-CB02-LS05-01", Tanggal: YESTERDAY_DATE, Cabang_ID: "CB-02", ID_MITRA: "LS05", ID_SKU_CABANG: "CB02-LS05-01", Harga_Snapshot: 15000, Komisi_Snapshot: 1500, MASUK_KASIR: 40, KOREKSI_MASUK_SPV: null, SISA_KASIR: 0, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261123-CB03-LS05-01", Tanggal: YESTERDAY_DATE, Cabang_ID: "CB-03", ID_MITRA: "LS05", ID_SKU_CABANG: "CB03-LS05-01", Harga_Snapshot: 15000, Komisi_Snapshot: 1500, MASUK_KASIR: 40, KOREKSI_MASUK_SPV: null, SISA_KASIR: 0, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+
+        // --- TODAY (2026-11-24) LIVE ROWS CB-01 (Lengkap LS01 s.d. LS08) ---
+        { ID_TRX: "20261124-CB01-LS01-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS01", ID_SKU_CABANG: "CB01-LS01-01", Harga_Snapshot: 15000, Komisi_Snapshot: 1500, MASUK_KASIR: 30, KOREKSI_MASUK_SPV: null, SISA_KASIR: 2, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB01-LS01-02", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS01", ID_SKU_CABANG: "CB01-LS01-02", Harga_Snapshot: 10000, Komisi_Snapshot: 1500, MASUK_KASIR: 20, KOREKSI_MASUK_SPV: null, SISA_KASIR: 0, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB01-LS02-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS02", ID_SKU_CABANG: "CB01-LS02-01", Harga_Snapshot: 10000, Komisi_Snapshot: 1500, MASUK_KASIR: 35, KOREKSI_MASUK_SPV: null, SISA_KASIR: 4, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB01-LS03-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS03", ID_SKU_CABANG: "CB01-LS03-01", Harga_Snapshot: 10000, Komisi_Snapshot: 1500, MASUK_KASIR: 0, KOREKSI_MASUK_SPV: null, SISA_KASIR: 0, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB01-LS04-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS04", ID_SKU_CABANG: "CB01-LS04-01", Harga_Snapshot: 10000, Komisi_Snapshot: 1500, MASUK_KASIR: 25, KOREKSI_MASUK_SPV: null, SISA_KASIR: 3, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB01-LS04-02", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS04", ID_SKU_CABANG: "CB01-LS04-02", Harga_Snapshot: 10000, Komisi_Snapshot: 1500, MASUK_KASIR: 15, KOREKSI_MASUK_SPV: null, SISA_KASIR: 0, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB01-LS05-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS05", ID_SKU_CABANG: "CB01-LS05-01", Harga_Snapshot: 10000, Komisi_Snapshot: 1500, MASUK_KASIR: 45, KOREKSI_MASUK_SPV: null, SISA_KASIR: 5, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB01-LS06-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS06", ID_SKU_CABANG: "CB01-LS06-01", Harga_Snapshot: 15000, Komisi_Snapshot: 1500, MASUK_KASIR: 20, KOREKSI_MASUK_SPV: null, SISA_KASIR: 2, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB01-LS07-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS07", ID_SKU_CABANG: "CB01-LS07-01", Harga_Snapshot: 10000, Komisi_Snapshot: 1500, MASUK_KASIR: 0, KOREKSI_MASUK_SPV: null, SISA_KASIR: 0, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB01-LS08-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS08", ID_SKU_CABANG: "CB01-LS08-01", Harga_Snapshot: 15000, Komisi_Snapshot: 1500, MASUK_KASIR: 18, KOREKSI_MASUK_SPV: null, SISA_KASIR: 1, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+
+        // CB-02 (Submitted Closing -> MENUNGGU_CEK_SPV)
+        { ID_TRX: "20261124-CB02-LS01-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-02", ID_MITRA: "LS01", ID_SKU_CABANG: "CB02-LS01-01", Harga_Snapshot: 15000, Komisi_Snapshot: 1500, MASUK_KASIR: 30, KOREKSI_MASUK_SPV: null, SISA_KASIR: 4, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB02-LS05-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-02", ID_MITRA: "LS05", ID_SKU_CABANG: "CB02-LS05-01", Harga_Snapshot: 15000, Komisi_Snapshot: 1500, MASUK_KASIR: 40, KOREKSI_MASUK_SPV: null, SISA_KASIR: 4, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB02-LS08-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-02", ID_MITRA: "LS08", ID_SKU_CABANG: "CB02-LS08-01", Harga_Snapshot: 10000, Komisi_Snapshot: 1500, MASUK_KASIR: 20, KOREKSI_MASUK_SPV: null, SISA_KASIR: 2, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+
+        // CB-03 (Verified by SPV -> TERVERIFIKASI_SPV, ready for Owner Mutation Confirm!)
+        { ID_TRX: "20261124-CB03-LS02-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-03", ID_MITRA: "LS02", ID_SKU_CABANG: "CB03-LS02-01", Harga_Snapshot: 10000, Komisi_Snapshot: 1500, MASUK_KASIR: 45, KOREKSI_MASUK_SPV: null, SISA_KASIR: 5, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB03-LS05-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-03", ID_MITRA: "LS05", ID_SKU_CABANG: "CB03-LS05-01", Harga_Snapshot: 15000, Komisi_Snapshot: 1500, MASUK_KASIR: 45, KOREKSI_MASUK_SPV: 46, SISA_KASIR: 6, KOREKSI_SISA_SPV: 6, Log_Edit_SPV: "spv1@l10.id @ 12:18:05" },
+
+        // CB-04 (Open)
+        { ID_TRX: "20261124-CB04-LS01-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-04", ID_MITRA: "LS01", ID_SKU_CABANG: "CB04-LS01-01", Harga_Snapshot: 15000, Komisi_Snapshot: 1500, MASUK_KASIR: 40, KOREKSI_MASUK_SPV: null, SISA_KASIR: 5, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" },
+        { ID_TRX: "20261124-CB04-LS04-01", Tanggal: TODAY_DATE, Cabang_ID: "CB-04", ID_MITRA: "LS04", ID_SKU_CABANG: "CB04-LS04-01", Harga_Snapshot: 10000, Komisi_Snapshot: 1500, MASUK_KASIR: 30, KOREKSI_MASUK_SPV: null, SISA_KASIR: 2, KOREKSI_SISA_SPV: null, Log_Edit_SPV: "" }
+      ],
+
+      // TAB 5: 5_CLOSING_SETORAN
+      closingSetoran: [
+        { ID_CLOSING: "20261123-CB-01", Tanggal: YESTERDAY_DATE, Cabang_ID: "CB-01", Pengeluaran_Tunai_Laci: 20000, Ket_Pengeluaran: "Kresek & Tisu", Foto_Nota_Belanja: "NOTA_CB01_2311.jpg", Cash_Fisik_Laci: 955000, Total_QRIS: 450000, Foto_Settlement_QRIS: "QRIS_CB01_2311.jpg", Penyelesaian_Minus: "-", Metode_Setor: "SETOR_BANK_BRILINK", Foto_Slip_Setor: "SLIP_BRI_CB01_2311.jpg", Status_Closing: "LOCKED_SETTLED", Log_Validasi_SPV: "spv1@l10.id @ 13:50", Log_Mutasi_Owner: "ziyaad.owner@l10.id @ 14:40" },
+        { ID_CLOSING: "20261123-CB-02", Tanggal: YESTERDAY_DATE, Cabang_ID: "CB-02", Pengeluaran_Tunai_Laci: 15000, Ket_Pengeluaran: "Air Galon", Foto_Nota_Belanja: "NOTA_CB02_2311.jpg", Cash_Fisik_Laci: 385000, Total_QRIS: 200000, Foto_Settlement_QRIS: "QRIS_CB02_2311.jpg", Penyelesaian_Minus: "-", Metode_Setor: "SETOR_BANK_BRILINK", Foto_Slip_Setor: "SLIP_BRI_CB02_2311.jpg", Status_Closing: "LOCKED_SETTLED", Log_Validasi_SPV: "spv1@l10.id @ 13:55", Log_Mutasi_Owner: "ziyaad.owner@l10.id @ 14:42" },
+        { ID_CLOSING: "20261123-CB-03", Tanggal: YESTERDAY_DATE, Cabang_ID: "CB-03", Pengeluaran_Tunai_Laci: 0, Ket_Pengeluaran: "-", Foto_Nota_Belanja: "-", Cash_Fisik_Laci: 400000, Total_QRIS: 200000, Foto_Settlement_QRIS: "QRIS_CB03_2311.jpg", Penyelesaian_Minus: "-", Metode_Setor: "SETOR_BANK_BRILINK", Foto_Slip_Setor: "SLIP_BRI_CB03_2311.jpg", Status_Closing: "LOCKED_SETTLED", Log_Validasi_SPV: "spv1@l10.id @ 14:02", Log_Mutasi_Owner: "ziyaad.owner@l10.id @ 14:45" },
+
+        // Today CB-02 -> MENUNGGU_CEK_SPV
+        { ID_CLOSING: "20261124-CB-02", Tanggal: TODAY_DATE, Cabang_ID: "CB-02", Pengeluaran_Tunai_Laci: 25000, Ket_Pengeluaran: "Plastik Kresek Besar & Lakban", Foto_Nota_Belanja: "CAM_NOTA_CB02_2411.jpg", Cash_Fisik_Laci: 750000, Total_QRIS: 320000, Foto_Settlement_QRIS: "CAM_QRIS_CB02_2411.jpg", Penyelesaian_Minus: "POTONG_GAJI_STAF", Metode_Setor: "SETOR_BANK_BRILINK", Foto_Slip_Setor: "CAM_SLIP_BRI_CB02_2411.jpg", Status_Closing: "MENUNGGU_CEK_SPV", Log_Validasi_SPV: "", Log_Mutasi_Owner: "" },
+
+        // Today CB-03 -> TERVERIFIKASI_SPV
+        { ID_CLOSING: "20261124-CB-03", Tanggal: TODAY_DATE, Cabang_ID: "CB-03", Pengeluaran_Tunai_Laci: 20000, Ket_Pengeluaran: "Galon Isi Ulang & Tisu", Foto_Nota_Belanja: "CAM_NOTA_CB03_2411.jpg", Cash_Fisik_Laci: 630000, Total_QRIS: 350000, Foto_Settlement_QRIS: "CAM_QRIS_CB03_2411.jpg", Penyelesaian_Minus: "-", Metode_Setor: "SETOR_BANK_BRILINK", Foto_Slip_Setor: "CAM_SLIP_BNI_CB03_2411.jpg", Status_Closing: "TERVERIFIKASI_SPV", Log_Validasi_SPV: "spv1@l10.id @ 13:45:12", Log_Mutasi_Owner: "" }
+      ],
+
+      // TAB 6: 6_LOG_KOMPLAIN_MITRA
+      komplain: [
+        { ID_KOMPLAIN: "KMP-20261123-0915", Tanggal_Kejadian: YESTERDAY_DATE, Cabang_ID: "CB-01", ID_MITRA: "LS04", ID_SKU_CABANG: "CB01-LS04-01", Qty_Komplain: 1, Nominal_Potongan_Mitra: 8500, Alasan: "Kuah lontong sedikit asam (Refund QR Konsumen)", Foto_Bukti_Komplain: "CAM_KMP_01.jpg" }
+      ],
+
+      // TAB 7: 7_REKAP_PAYOUT_3HARIAN
+      payoutStatus: {
+        "LS01": { Status_Transfer: "SIAP_TRANSFER", Bukti_Transfer_Admin: "" },
+        "LS02": { Status_Transfer: "SIAP_TRANSFER", Bukti_Transfer_Admin: "" },
+        "LS03": { Status_Transfer: "SIAP_TRANSFER", Bukti_Transfer_Admin: "" },
+        "LS04": { Status_Transfer: "SIAP_TRANSFER", Bukti_Transfer_Admin: "" },
+        "LS05": { Status_Transfer: "SIAP_TRANSFER", Bukti_Transfer_Admin: "" },
+        "LS06": { Status_Transfer: "SIAP_TRANSFER", Bukti_Transfer_Admin: "" },
+        "LS07": { Status_Transfer: "SIAP_TRANSFER", Bukti_Transfer_Admin: "" },
+        "LS08": { Status_Transfer: "SIAP_TRANSFER", Bukti_Transfer_Admin: "" }
+      },
+
+      // TAB 9: 9_PENGAJUAN_SKU_HARGA
+      pengajuanSku: [
+        {
+          ID_PENGAJUAN: "REQ-20261124-093012",
+          Email_SPV: "spv1@l10.id",
+          Jenis_Pengajuan: "TAMBAH_SKU_BARU",
+          Cabang_ID: "CB-04",
+          ID_MITRA: "LS05",
+          ID_SKU_LAMA: "-",
+          Nama_Produk_Usulan: "Nasi Uduk Rendang Suwir",
+          Harga_Usulan: 15000,
+          Skor_QC_Kemasan: 85,
+          Skor_QC_Rasa: 90,
+          Skor_QC_SuhuRuang: 80,
+          Foto_Sampel_QC: "CAM_QC_SAMPEL_LS05.jpg",
+          Tanggal_Efektif: "2026-11-25",
+          Status_Approval: "MENUNGGU_PUSAT"
+        }
+      ]
+    };
+
+    // =========================================================================
+    // 2. UI & SIMULATOR SESSION STATE
+    // =========================================================================
+    const state = {
+      currentEmail: "kasir.cb01@l10.id",
+      simTime: "06:00",
+      workspaceMode: "split",
+      activeAppTab: "inbound",
+      activeSheetTab: "4_TRANSAKSI_HARIAN",
+      sheetSubMode: "data",
+      unlockedPins: {},
+      pinInputBuffer: "",
+      selectedInboundMitra: "LS01",
+      selectedOpnameMitra: "LS01",
+      capturedInboundPhoto: null,
+      qcPhotoCaptured: null,
+      closingFormDraft: {
+        pengeluaran: 0,
+        ketPengeluaran: "",
+        fotoNota: null,
+        cashFisik: "",
+        totalQris: "",
+        fotoQris: null,
+        penyelesaianMinus: "NOMBOK_TUNAI_HARI_INI",
+        metodeSetor: "SETOR_BANK_BRILINK",
+        fotoSlip: null
+      },
+      spvSelectedBranch: "CB-01"
+    };
+
+    // =========================================================================
+    // 3. HELPER FUNCTIONS (NATURAL SORTING LS01..LSxx, FORMULAS, TIME GATES)
+    // =========================================================================
+    function compareNatural(a, b) {
+      return String(a).localeCompare(String(b), "id", { numeric: true, sensitivity: "base" });
+    }
+
+    function sortTrxByMitraAndSku(a, b) {
+      const mCmp = compareNatural(a.ID_MITRA, b.ID_MITRA);
+      if (mCmp !== 0) return mCmp;
+      return compareNatural(a.ID_SKU_CABANG, b.ID_SKU_CABANG);
+    }
+
+    function formatRp(num) {
+      if (num === null || num === undefined || isNaN(num)) return "Rp 0";
+      const prefix = num < 0 ? "-Rp " : "Rp ";
+      return prefix + Math.abs(Math.round(num)).toLocaleString("id-ID");
+    }
+
+    function getCurrentUser() {
+      return db.users.find(u => u.Email_User === state.currentEmail) || db.users[0];
+    }
+
+    function getMitraName(idMitra) {
+      const m = db.mitra.find(x => x.ID_MITRA === idMitra);
+      return m ? m.Nama_Mitra : idMitra;
+    }
+
+    function getSkuInfo(idSku) {
+      return db.skuCabang.find(x => x.ID_SKU_CABANG === idSku) || { Nama_Produk: idSku, Harga_Jual: 10000 };
+    }
+
+    function getSortedBranchMitras(cabangId) {
+      const ids = [...new Set(
+        db.skuCabang
+          .filter(s => s.Cabang_ID === cabangId && s.Status_SKU === "AKTIF")
+          .map(s => s.ID_MITRA)
+      )].sort(compareNatural);
+      return ids.map(id => db.mitra.find(m => m.ID_MITRA === id) || { ID_MITRA: id, Nama_Mitra: id });
+    }
+
+    function getBranchClosing(cabangId, tanggal = TODAY_DATE) {
+      return db.closingSetoran.find(c => c.Cabang_ID === cabangId && c.Tanggal === tanggal);
+    }
+
+    function getBranchClosingStatus(cabangId, tanggal = TODAY_DATE) {
+      const c = getBranchClosing(cabangId, tanggal);
+      return c ? c.Status_Closing : "BELUM_SETOR";
+    }
+
+    function timeToMinutes(hhmm) {
+      const [h, m] = hhmm.split(":").map(Number);
+      return h * 60 + m;
+    }
+
+    function checkTimeGates(cabangId) {
+      const mins = timeToMinutes(state.simTime);
+      const status = getBranchClosingStatus(cabangId, TODAY_DATE);
+      const isBelumSetor = status === "BELUM_SETOR";
+
+      return {
+        canKasirEditMasuk: isBelumSetor && mins <= timeToMinutes("07:00"),
+        canKasirEditSisa: isBelumSetor && mins >= timeToMinutes("11:00") && mins <= timeToMinutes("13:30"),
+        canSpvEdit: isBelumSetor && mins <= timeToMinutes("13:30"),
+        statusClosing: status
+      };
+    }
+
+    function computeTrxRow(row) {
+      const masukFinal = (row.KOREKSI_MASUK_SPV !== null && row.KOREKSI_MASUK_SPV !== "" && !isNaN(row.KOREKSI_MASUK_SPV))
+        ? Number(row.KOREKSI_MASUK_SPV)
+        : Number(row.MASUK_KASIR || 0);
+      const sisaFinal = (row.KOREKSI_SISA_SPV !== null && row.KOREKSI_SISA_SPV !== "" && !isNaN(row.KOREKSI_SISA_SPV))
+        ? Number(row.KOREKSI_SISA_SPV)
+        : Number(row.SISA_KASIR || 0);
+      const terjual = Math.max(0, masukFinal - sisaFinal);
+      const omsetKotor = terjual * Number(row.Harga_Snapshot);
+      const komisiKotor = terjual * Number(row.Komisi_Snapshot);
+      const omsetBersihMitra = omsetKotor - komisiKotor;
+      const statusClosing = getBranchClosingStatus(row.Cabang_ID, row.Tanggal);
+
+      return {
+        ...row,
+        MASUK_FINAL: masukFinal,
+        SISA_FINAL: sisaFinal,
+        TERJUAL: terjual,
+        Omset_Kotor: omsetKotor,
+        Komisi_Kotor_L10: komisiKotor,
+        Omset_Bersih_Mitra: omsetBersihMitra,
+        Status_Closing_Ref: statusClosing
+      };
+    }
+
+    function computeClosingRow(c) {
+      const branchTrx = db.transaksi
+        .filter(t => t.Cabang_ID === c.Cabang_ID && t.Tanggal === c.Tanggal)
+        .map(computeTrxRow);
+
+      const omsetKotorSistem = branchTrx.reduce((sum, r) => sum + r.Omset_Kotor, 0);
+      const komisiKotorCabang = branchTrx.reduce((sum, r) => sum + r.Komisi_Kotor_L10, 0);
+      const pengeluaran = Number(c.Pengeluaran_Tunai_Laci || 0);
+      const cashFisik = Number(c.Cash_Fisik_Laci || 0);
+      const qris = Number(c.Total_QRIS || 0);
+
+      const totalPertanggungjawaban = cashFisik + qris + pengeluaran;
+      const selisihKasir = totalPertanggungjawaban - omsetKotorSistem;
+      const nominalWajibSetor = (selisihKasir < 0 && c.Penyelesaian_Minus === "NOMBOK_TUNAI_HARI_INI")
+        ? cashFisik + Math.abs(selisihKasir)
+        : cashFisik;
+      const komisiAktualL10 = komisiKotorCabang - pengeluaran;
+
+      return {
+        ...c,
+        Omset_Kotor_Sistem: omsetKotorSistem,
+        Total_Pertanggungjawaban: totalPertanggungjawaban,
+        Selisih_Kasir: selisihKasir,
+        Nominal_Wajib_Setor_Bank: nominalWajibSetor,
+        Komisi_Kotor_Cabang: komisiKotorCabang,
+        Komisi_Aktual_L10: komisiAktualL10
+      };
+    }
+
+    function computeSpreadsheetLaporanSisa(cabangId = null) {
+      return db.transaksi
+        .filter(t => t.Tanggal === TODAY_DATE && (!cabangId || t.Cabang_ID === cabangId))
+        .sort((a, b) => {
+          const cbCmp = compareNatural(a.Cabang_ID, b.Cabang_ID);
+          if (cbCmp !== 0) return cbCmp;
+          return sortTrxByMitraAndSku(a, b);
+        })
+        .map(raw => {
+          const r = computeTrxRow(raw);
+          const sku = getSkuInfo(r.ID_SKU_CABANG);
+          let statusBarang = "TIDAK KIRIM";
+          if (r.MASUK_FINAL > 0 && r.SISA_FINAL > 0) statusBarang = "ADA SISA RETUR";
+          else if (r.MASUK_FINAL > 0 && r.SISA_FINAL === 0) statusBarang = "HABIS TERJUAL";
+
+          return {
+            Cabang_ID: r.Cabang_ID,
+            Kode_Mitra: r.ID_MITRA,
+            Nama_Mitra: getMitraName(r.ID_MITRA),
+            Kode_SKU: r.ID_SKU_CABANG,
+            Nama_Produk: sku.Nama_Produk,
+            Masuk: r.MASUK_FINAL,
+            Terjual: r.TERJUAL,
+            Sisa_Retur: r.SISA_FINAL,
+            Status: statusBarang
+          };
+        });
+    }
+
+    function computePayoutRecap() {
+      const settledTrx = db.transaksi
+        .filter(t => t.Tanggal >= CYCLE_START && t.Tanggal <= CYCLE_END)
+        .filter(t => getBranchClosingStatus(t.Cabang_ID, t.Tanggal) === "LOCKED_SETTLED")
+        .map(computeTrxRow);
+
+      return [...db.mitra].sort((a, b) => compareNatural(a.ID_MITRA, b.ID_MITRA)).map(m => {
+        const myTrx = settledTrx.filter(t => t.ID_MITRA === m.ID_MITRA);
+        const totalQty = myTrx.reduce((s, r) => s + r.TERJUAL, 0);
+        const totalBersih10Cabang = myTrx.reduce((s, r) => s + r.Omset_Bersih_Mitra, 0);
+
+        const branchMap = {};
+        myTrx.forEach(r => {
+          if (r.Omset_Bersih_Mitra > 0) {
+            branchMap[r.Cabang_ID] = (branchMap[r.Cabang_ID] || 0) + r.Omset_Bersih_Mitra;
+          }
+        });
+        const rincianPerCabang = Object.keys(branchMap).length > 0
+          ? Object.entries(branchMap).sort((a, b) => compareNatural(a[0], b[0])).map(([cb, val]) => `${cb}: ${formatRp(val)}`).join(" | ")
+          : "Belum ada transaksi settled";
+
+        const myKomplain = db.komplain.filter(k => k.ID_MITRA === m.ID_MITRA && k.Tanggal_Kejadian >= CYCLE_START && k.Tanggal_Kejadian <= CYCLE_END);
+        const totalPotonganKomplain = myKomplain.reduce((s, k) => s + Number(k.Nominal_Potongan_Mitra || 0), 0);
+
+        const biayaBank = Number(m.Biaya_Admin_Bank || 0);
+        const totalTransfer = Math.max(0, totalBersih10Cabang - totalPotonganKomplain - (totalBersih10Cabang > 0 ? biayaBank : 0));
+        const pStatus = db.payoutStatus[m.ID_MITRA] || { Status_Transfer: "SIAP_TRANSFER", Bukti_Transfer_Admin: "" };
+
+        return {
+          ID_PAYOUT: `${CYCLE_CODE}-${m.ID_MITRA}`,
+          Kode_Siklus: CYCLE_CODE,
+          Tgl_Mulai: CYCLE_START,
+          Tgl_Selesai: CYCLE_END,
+          ID_MITRA: m.ID_MITRA,
+          Nama_Mitra: m.Nama_Mitra,
+          No_WA_Mitra: m.No_WA_Mitra,
+          Bank_Tujuan: m.Bank_Tujuan,
+          No_Rekening: m.No_Rekening,
+          Nama_Pemilik_Rek: m.Nama_Pemilik_Rek,
+          Total_Qty_Terjual: totalQty,
+          Total_Bersih_10_Cabang: totalBersih10Cabang,
+          Rincian_Per_Cabang: rincianPerCabang,
+          Total_Potongan_Komplain: totalPotonganKomplain,
+          Biaya_Admin_Bank: totalBersih10Cabang > 0 ? biayaBank : 0,
+          Total_Transfer_Diterima: totalTransfer,
+          Status_Transfer: pStatus.Status_Transfer
+        };
+      });
+    }
+
+    // =========================================================================
+    // 4. SIMULATOR CONTROLS & EVENT HANDLERS
+    // =========================================================================
+    function showToast(msg, type = "success") {
+      const container = document.getElementById("toastContainer");
+      if (!container) return;
+      const toast = document.createElement("div");
+      const colors = {
+        success: "bg-emerald-900 text-white border-emerald-600",
+        warning: "bg-amber-600 text-white border-amber-400",
+        error: "bg-rose-700 text-white border-rose-500"
+      };
+      toast.className = `${colors[type] || colors.success} border px-3.5 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2 pointer-events-auto transition-all`;
+      toast.innerHTML = `<span>${type === 'error' ? '⚠️' : type === 'warning' ? '⏰' : '✅'}</span><span>${msg}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    function triggerManualSync() {
+      const icon = document.getElementById("syncIcon");
+      const label = document.getElementById("syncLabel");
+      if (icon) icon.classList.add("animate-spin");
+      if (label) label.textContent = "Syncing...";
+      setTimeout(() => {
+        if (icon) icon.classList.remove("animate-spin");
+        if (label) label.textContent = "Synced";
+        renderAll();
+      }, 300);
+    }
+
+    function handleAccountSwitch(email) {
+      state.currentEmail = email;
+      const user = getCurrentUser();
+      if (user.Role === "KASIR") {
+        state.activeAppTab = "inbound";
+        state.pinInputBuffer = "";
+        const sortedMitras = getSortedBranchMitras(user.Cabang_Akses);
+        const firstId = sortedMitras[0]?.ID_MITRA || "LS01";
+        state.selectedInboundMitra = firstId;
+        state.selectedOpnameMitra = firstId;
+      } else if (user.Role === "SPV") {
+        state.activeAppTab = "spv_audit";
+        state.spvSelectedBranch = user.Cabang_Akses.split(",")[0];
+      } else if (user.Role === "MANAGER_OWNER") {
+        state.activeAppTab = "owner_mutasi";
+      } else if (user.Role === "ADMIN_PUSAT") {
+        state.activeAppTab = "admin_payout";
+      }
+      renderAll();
+    }
+
+    function setSimTime(timeStr) {
+      state.simTime = timeStr;
+      const clockEl = document.getElementById("phoneClockDisplay");
+      if (clockEl) clockEl.textContent = `${timeStr} WIB`;
+
+      document.querySelectorAll(".time-btn").forEach(btn => {
+        btn.classList.remove("bg-amber-600", "text-white", "shadow-xs");
+        btn.classList.add("text-amber-900", "hover:bg-amber-100");
+      });
+      const activeBtn = document.getElementById(`time-btn-${timeStr}`);
+      if (activeBtn) {
+        activeBtn.classList.remove("text-amber-900", "hover:bg-amber-100");
+        activeBtn.classList.add("bg-amber-600", "text-white", "shadow-xs");
+      }
+
+      const ruleMap = {
+        "06:00": "Simulasi 06:00 WIB (Inbound Subuh) — Dropdown per Mitra (LS01..LS08) + Foto Bukti Penerimaan (Opsional) + Dashboard Produk Live per Kategori Mitra.",
+        "11:15": "Simulasi 11:15 WIB (Stok Opname Sisa) — MASUK_KASIR terkunci (> 07.00); Dropdown per Mitra (LS01..LS08) untuk input SISA & pantau Dashboard Live Terjual.",
+        "11:30": "Simulasi 11:30 WIB (Laporan Sisa Spreadsheet) — Tabel View-Only Spreadsheet Cabang terurut LS01..LS08 siap dibagikan ke Grup Mitra.",
+        "12:45": "Simulasi 12:45 WIB (Blind Closing & Koreksi SPV) — Kasir isi Blind Closing (Nol Buffer Minus); SPV masih bisa koreksi terpisah (< 13.30 WIB).",
+        "14:15": "Simulasi 14:15 WIB (Terkunci / Verifikasi Mutasi) — Seluruh input kasir & koreksi SPV TERKUNCI (> 13.30 WIB); SPV & Owner verifikasi mutasi setoran."
+      };
+      const ruleEl = document.getElementById("timeRuleText");
+      if (ruleEl) ruleEl.textContent = ruleMap[timeStr] || "";
+
+      const user = getCurrentUser();
+      if (user.Role === "KASIR" && state.unlockedPins[user.Cabang_Akses]) {
+        if (timeStr === "06:00") state.activeAppTab = "inbound";
+        if (timeStr === "11:15") state.activeAppTab = "sisa";
+        if (timeStr === "11:30") state.activeAppTab = "laporan_sisa";
+        if (timeStr === "12:45") state.activeAppTab = "closing";
+      }
+      renderAll();
+    }
+
+    function setWorkspaceMode(mode) {
+      state.workspaceMode = mode;
+      document.querySelectorAll(".ws-btn").forEach(btn => {
+        btn.classList.remove("bg-emerald-800", "text-white", "shadow-xs");
+        btn.classList.add("text-slate-600", "hover:text-slate-900");
+      });
+      const activeBtn = document.getElementById(`ws-btn-${mode}`);
+      if (activeBtn) {
+        activeBtn.classList.remove("text-slate-600", "hover:text-slate-900");
+        activeBtn.classList.add("bg-emerald-800", "text-white", "shadow-xs");
+      }
+
+      const appPane = document.getElementById("appsheetPane");
+      const sheetPane = document.getElementById("gsheetPane");
+      if (!appPane || !sheetPane) return;
+
+      if (mode === "split") {
+        appPane.classList.remove("hidden", "lg:col-span-12");
+        appPane.classList.add("lg:col-span-5", "xl:col-span-4");
+        sheetPane.classList.remove("hidden", "lg:col-span-12");
+        sheetPane.classList.add("lg:col-span-7", "xl:col-span-8");
+      } else if (mode === "app") {
+        appPane.classList.remove("hidden", "lg:col-span-5", "xl:col-span-4");
+        appPane.classList.add("lg:col-span-12");
+        sheetPane.classList.add("hidden");
+      } else if (mode === "sheet") {
+        appPane.classList.add("hidden");
+        sheetPane.classList.remove("hidden", "lg:col-span-7", "xl:col-span-8");
+        sheetPane.classList.add("lg:col-span-12");
+      }
+    }
+
+    function setSheetSubMode(sub) {
+      state.sheetSubMode = sub;
+      const btnData = document.getElementById("sheet-mode-data");
+      const btnSchema = document.getElementById("sheet-mode-schema");
+      if (btnData && btnSchema) {
+        if (sub === "data") {
+          btnData.className = "px-2.5 py-1 rounded-md bg-white text-emerald-800 shadow-sm";
+          btnSchema.className = "px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900";
+        } else {
+          btnSchema.className = "px-2.5 py-1 rounded-md bg-white text-emerald-800 shadow-sm";
+          btnData.className = "px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900";
+        }
+      }
+      renderGoogleSheets();
+    }
+
+    // =========================================================================
+    // 5. APPSHEET INTERACTIVE ACTIONS (LIVE MUTATIONS TO DB)
+    // =========================================================================
+    function verifyKasirPin(cabangId, expectedPin) {
+      const inputEl = document.getElementById("kasirPinInput");
+      const val = inputEl ? inputEl.value.trim() : state.pinInputBuffer;
+      if (val === expectedPin) {
+        state.unlockedPins[cabangId] = true;
+        showToast(`Akses ${cabangId} terbuka! Security Filter aktif khusus untuk ${cabangId}.`);
+        renderAll();
+      } else {
+        showToast(`PIN salah untuk ${cabangId}! Gunakan tombol Isi PIN Cabang jika simulasi.`, "error");
+      }
+    }
+
+    function autoFillKasirPin(cabangId, pin) {
+      state.pinInputBuffer = pin;
+      const inputEl = document.getElementById("kasirPinInput");
+      if (inputEl) inputEl.value = pin;
+      verifyKasirPin(cabangId, pin);
+    }
+
+    function lockKasirPin() {
+      const user = getCurrentUser();
+      if (user.Role === "KASIR") {
+        delete state.unlockedPins[user.Cabang_Akses];
+        state.pinInputBuffer = "";
+        showToast(`Sesi ${user.Cabang_Akses} dikunci kembali.`, "warning");
+        renderAll();
+      }
+    }
+
+    function simulateCameraCapture(targetField, labelText) {
+      const user = getCurrentUser();
+      const branch = user.Role === "KASIR" ? user.Cabang_Akses : state.spvSelectedBranch;
+      const fileName = `CAM_${targetField.toUpperCase()}_${branch}_${state.simTime.replace(":", "")}.jpg`;
+      if (targetField === "inbound") {
+        state.capturedInboundPhoto = fileName;
+      } else if (targetField === "nota") {
+        state.closingFormDraft.fotoNota = fileName;
+      } else if (targetField === "qris") {
+        state.closingFormDraft.fotoQris = fileName;
+      } else if (targetField === "slip") {
+        state.closingFormDraft.fotoSlip = fileName;
+      } else if (targetField === "qc_sampel") {
+        state.qcPhotoCaptured = fileName;
+      }
+      showToast(`Kamera Langsung: ${labelText} berhasil dipotret.`);
+      renderAppSheet();
+    }
+
+    function saveOptionalInboundReceipt() {
+      const user = getCurrentUser();
+      const cabangId = user.Cabang_Akses;
+      const gates = checkTimeGates(cabangId);
+      if (!gates.canKasirEditMasuk) {
+        showToast("Input Inbound terkunci di luar jam 05.00–07.00 WIB!", "error");
+        return;
+      }
+      const mitraId = state.selectedInboundMitra;
+      const idInbound = `${TODAY_DATE.replaceAll("-", "")}-${cabangId}-${mitraId}`;
+      const existingIdx = db.inboundSubuh.findIndex(x => x.ID_INBOUND === idInbound);
+      const photoValue = state.capturedInboundPhoto || "(Tanpa Foto - Opsional)";
+
+      const record = {
+        ID_INBOUND: idInbound,
+        Tanggal: TODAY_DATE,
+        Cabang_ID: cabangId,
+        ID_MITRA: mitraId,
+        Foto_Bukti_Penerimaan: photoValue,
+        Waktu_Input_Subuh: `${TODAY_DATE} ${state.simTime}:15`
+      };
+      if (existingIdx >= 0) {
+        db.inboundSubuh[existingIdx] = record;
+      } else {
+        db.inboundSubuh.unshift(record);
+      }
+      state.capturedInboundPhoto = null;
+      state.activeSheetTab = "3_BUKTI_INBOUND_SUBUH";
+      showToast(`Penerimaan ${mitraId} (${getMitraName(mitraId)}) dicatat${photoValue.startsWith('CAM') ? ' dengan foto bukti' : ' (tanpa foto)'}.`);
+      renderAll();
+    }
+
+    function updateTrxQty(idTrx, field, rawVal) {
+      const row = db.transaksi.find(t => t.ID_TRX === idTrx);
+      if (!row) return;
+      const gates = checkTimeGates(row.Cabang_ID);
+      const val = Math.max(0, parseInt(rawVal || "0", 10));
+
+      if (field === "MASUK_KASIR") {
+        if (!gates.canKasirEditMasuk) {
+          showToast("MASUK_KASIR terkunci (> 07.00 WIB). Minta SPV isi KOREKSI_MASUK_SPV!", "error");
+          renderAppSheet();
+          return;
+        }
+        row.MASUK_KASIR = val;
+        if (row.SISA_KASIR > val) row.SISA_KASIR = val;
+
+        if (val > 0) {
+          const idInb = `${TODAY_DATE.replaceAll("-", "")}-${row.Cabang_ID}-${row.ID_MITRA}`;
+          if (!db.inboundSubuh.some(x => x.ID_INBOUND === idInb)) {
+            db.inboundSubuh.unshift({
+              ID_INBOUND: idInb,
+              Tanggal: TODAY_DATE,
+              Cabang_ID: row.Cabang_ID,
+              ID_MITRA: row.ID_MITRA,
+              Foto_Bukti_Penerimaan: state.capturedInboundPhoto || "(Tanpa Foto - Opsional)",
+              Waktu_Input_Subuh: `${TODAY_DATE} ${state.simTime}:10`
+            });
+          }
+        }
+      } else if (field === "SISA_KASIR") {
+        if (!gates.canKasirEditSisa) {
+          showToast("Stok Opname SISA hanya bisa diisi pukul 11.00–13.30 WIB!", "error");
+          renderAppSheet();
+          return;
+        }
+        const computed = computeTrxRow(row);
+        if (val > computed.MASUK_FINAL) {
+          showToast(`Valid_If Gagal: SISA (${val}) tidak boleh melebihi MASUK (${computed.MASUK_FINAL})!`, "error");
+          renderAppSheet();
+          return;
+        }
+        row.SISA_KASIR = val;
+      }
+      state.activeSheetTab = "4_TRANSAKSI_HARIAN";
+      renderAll();
+    }
+
+    function selectInboundMitraFromDashboard(mitraId) {
+      state.selectedInboundMitra = mitraId;
+      renderAppSheet();
+      const bodyEl = document.getElementById("appScreenBody");
+      if (bodyEl) bodyEl.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function selectOpnameMitraFromDashboard(mitraId) {
+      state.selectedOpnameMitra = mitraId;
+      renderAppSheet();
+      const bodyEl = document.getElementById("appScreenBody");
+      if (bodyEl) bodyEl.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function updateSpvCorrection(idTrx, field, rawVal) {
+      const row = db.transaksi.find(t => t.ID_TRX === idTrx);
+      if (!row) return;
+      const gates = checkTimeGates(row.Cabang_ID);
+      if (!gates.canSpvEdit) {
+        showToast("Koreksi SPV terkunci (> 13.30 WIB atau setoran sudah diunggah)!", "error");
+        renderAppSheet();
+        return;
+      }
+      const user = getCurrentUser();
+      if (rawVal === "" || rawVal === null) {
+        row[field] = null;
+      } else {
+        const num = Math.max(0, parseInt(rawVal, 10));
+        const computed = computeTrxRow(row);
+        if (field === "KOREKSI_SISA_SPV" && num > computed.MASUK_FINAL) {
+          showToast(`Koreksi SISA tidak boleh > MASUK_FINAL (${computed.MASUK_FINAL})!`, "error");
+          renderAppSheet();
+          return;
+        }
+        row[field] = num;
+      }
+      row.Log_Edit_SPV = `${user.Email_User} @ ${state.simTime}:22`;
+      state.activeSheetTab = "4_TRANSAKSI_HARIAN";
+      showToast(`Koreksi SPV dicatat terpisah tanpa menimpa input Kasir (${row.Log_Edit_SPV}).`);
+      renderAll();
+    }
+
+    function copySpreadsheetSisaLink(cabangId) {
+      const sheetUrl = `https://docs.google.com/spreadsheets/d/L10-LIVE-SISA-${cabangId}-20261124/view?usp=sharing`;
+      const shareText = `📊 *SPREADSHEET LAPORAN SISA & TERJUAL ${cabangId} (24/11/2026)*\nSilakan cek status produk Anda (terurut kode mitra LS01 s.d. akhir) pada tautan berikut:\n${sheetUrl}\n_Batas pengambilan barang sisa maksimal pukul 12.00 WIB._`;
+
+      const textarea = document.createElement("textarea");
+      textarea.value = shareText;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showToast(`Link Spreadsheet View-Only ${cabangId} disalin! Siap ditempel ke Grup WA.`);
+      } catch (e) {
+        showToast("Gagal menyalin link.", "error");
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function openMitraSpreadsheetPreviewModal(cabangId) {
+      const rows = computeSpreadsheetLaporanSisa(cabangId);
+      openCustomModal(
+        `Tampilan View-Only Spreadsheet Mitra (${cabangId})`,
+        `<div class="space-y-2">
+          <div class="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 text-[11px] text-emerald-900">
+            <span><strong>Sheet:</strong> 10_VIEW_LAPORAN_SISA_${cabangId}</span>
+            <span class="font-mono font-bold">Urut: LS01 → Akhir</span>
+          </div>
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left border-collapse text-[11px] font-mono">
+              <thead class="bg-slate-100 border-b border-slate-300 text-slate-700">
+                <tr>
+                  <th class="p-2 border-r border-slate-200">Mitra</th>
+                  <th class="p-2 border-r border-slate-200">Kode SKU</th>
+                  <th class="p-2 border-r border-slate-200">Produk</th>
+                  <th class="p-2 border-r border-slate-200 text-right">Msk</th>
+                  <th class="p-2 border-r border-slate-200 text-right">Laku</th>
+                  <th class="p-2 border-r border-slate-200 text-right">Sisa</th>
+                  <th class="p-2">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                ${rows.map(r => `
+                  <tr>
+                    <td class="p-2 border-r border-slate-200 font-bold text-emerald-900 whitespace-nowrap">${r.Kode_Mitra} - ${r.Nama_Mitra}</td>
+                    <td class="p-2 border-r border-slate-200 whitespace-nowrap">${r.Kode_SKU}</td>
+                    <td class="p-2 border-r border-slate-200 font-sans">${r.Nama_Produk}</td>
+                    <td class="p-2 border-r border-slate-200 text-right">${r.Masuk}</td>
+                    <td class="p-2 border-r border-slate-200 text-right text-emerald-700 font-bold">${r.Terjual}</td>
+                    <td class="p-2 border-r border-slate-200 text-right ${r.Sisa_Retur > 0 ? 'text-amber-700 font-bold' : ''}">${r.Sisa_Retur}</td>
+                    <td class="p-2 whitespace-nowrap font-bold ${r.Status === 'ADA SISA RETUR' ? 'text-amber-700' : r.Status === 'HABIS TERJUAL' ? 'text-emerald-700' : 'text-slate-400'}">${r.Status}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>`,
+        `<button onclick="copySpreadsheetSisaLink('${cabangId}')" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold">Salin Link Spreadsheet WA</button>
+         <button onclick="closeCustomModal()" class="px-3 py-1.5 rounded-lg bg-slate-200 text-slate-700 text-xs font-semibold">Tutup</button>`
+      );
+    }
+
+    function downloadBranchSisaSpreadsheetCsv(cabangId) {
+      const rows = computeSpreadsheetLaporanSisa(cabangId);
+      const headers = ["KODE_MITRA", "NAMA_MITRA", "KODE_SKU", "NAMA_PRODUK", "MASUK", "TERJUAL", "SISA_RETUR", "STATUS"];
+      const lines = [headers.join(",")];
+      rows.forEach(r => {
+        lines.push([
+          r.Kode_Mitra,
+          `"${r.Nama_Mitra}"`,
+          r.Kode_SKU,
+          `"${r.Nama_Produk}"`,
+          r.Masuk,
+          r.Terjual,
+          r.Sisa_Retur,
+          `"${r.Status}"`
+        ].join(","));
+      });
+      triggerCsvDownload(lines.join("\n"), `LAPORAN_SISA_SPREADSHEET_${cabangId}_${TODAY_DATE}.csv`);
+      showToast(`Spreadsheet Laporan Sisa ${cabangId} (urut LS01..akhir) berhasil diunduh!`);
+    }
+
+    function submitBlindClosing(cabangId) {
+      const d = state.closingFormDraft;
+      const pengeluaran = Number(d.pengeluaran || 0);
+      const cashFisik = d.cashFisik === "" ? NaN : Number(d.cashFisik);
+      const totalQris = d.totalQris === "" ? NaN : Number(d.totalQris);
+
+      if (isNaN(cashFisik) || isNaN(totalQris)) {
+        showToast("Isi nominal Cash Fisik Laci dan Total QRIS terlebih dahulu!", "error");
+        return;
+      }
+      if (pengeluaran > 0 && (!d.ketPengeluaran.trim() || !d.fotoNota)) {
+        showToast("Pengeluaran laci > 0 wajib disertai keterangan belanja & foto nota!", "error");
+        return;
+      }
+      if (!d.fotoQris || !d.fotoSlip) {
+        showToast("Wajib memotret bukti Settlement QRIS & Slip Setor Bank/BRILink!", "error");
+        return;
+      }
+
+      const branchTrx = db.transaksi
+        .filter(t => t.Cabang_ID === cabangId && t.Tanggal === TODAY_DATE)
+        .map(computeTrxRow);
+      const omsetSistem = branchTrx.reduce((s, r) => s + r.Omset_Kotor, 0);
+      const selisih = (cashFisik + totalQris + pengeluaran) - omsetSistem;
+
+      const newRecord = {
+        ID_CLOSING: `${TODAY_DATE.replaceAll("-", "")}-${cabangId}`,
+        Tanggal: TODAY_DATE,
+        Cabang_ID: cabangId,
+        Pengeluaran_Tunai_Laci: pengeluaran,
+        Ket_Pengeluaran: pengeluaran > 0 ? d.ketPengeluaran : "-",
+        Foto_Nota_Belanja: pengeluaran > 0 ? d.fotoNota : "-",
+        Cash_Fisik_Laci: cashFisik,
+        Total_QRIS: totalQris,
+        Foto_Settlement_QRIS: d.fotoQris,
+        Penyelesaian_Minus: selisih < 0 ? d.penyelesaianMinus : "-",
+        Metode_Setor: d.metodeSetor,
+        Foto_Slip_Setor: d.fotoSlip,
+        Status_Closing: "MENUNGGU_CEK_SPV",
+        Log_Validasi_SPV: "",
+        Log_Mutasi_Owner: ""
+      };
+
+      const idx = db.closingSetoran.findIndex(c => c.ID_CLOSING === newRecord.ID_CLOSING);
+      if (idx >= 0) db.closingSetoran[idx] = newRecord;
+      else db.closingSetoran.unshift(newRecord);
+
+      state.activeSheetTab = "5_CLOSING_SETORAN";
+      showToast(`Blind Closing ${cabangId} terkunci! Omset sistem & selisih kini terbuka.`);
+      renderAll();
+    }
+
+    function updateMinusResolution(idClosing, method) {
+      const c = db.closingSetoran.find(x => x.ID_CLOSING === idClosing);
+      if (c) {
+        c.Penyelesaian_Minus = method;
+        showToast(`Penyelesaian minus diperbarui menjadi: ${method}`);
+        renderAll();
+      }
+    }
+
+    function spvVerifyClosing(idClosing) {
+      const c = db.closingSetoran.find(x => x.ID_CLOSING === idClosing);
+      if (!c) return;
+      const user = getCurrentUser();
+      c.Status_Closing = "TERVERIFIKASI_SPV";
+      c.Log_Validasi_SPV = `${user.Email_User} @ ${state.simTime}:40`;
+      state.activeSheetTab = "5_CLOSING_SETORAN";
+      showToast(`Setoran ${c.Cabang_ID} tervalidasi SPV! Diteruskan ke Owner/Manager.`);
+      renderAll();
+    }
+
+    function ownerConfirmMutation(idClosing) {
+      const c = db.closingSetoran.find(x => x.ID_CLOSING === idClosing);
+      if (!c) return;
+      const user = getCurrentUser();
+      c.Status_Closing = "LOCKED_SETTLED";
+      c.Log_Mutasi_Owner = `${user.Email_User} @ ${state.simTime}:55`;
+      state.activeSheetTab = "7_REKAP_PAYOUT_3HARIAN";
+      showToast(`Mutasi ${c.Cabang_ID} VALID (LOCKED_SETTLED)! Otomatis masuk ke Rekap Payout 3-Harian.`);
+      renderAll();
+    }
+
+    function submitSpvSkuProposal(e) {
+      e.preventDefault();
+      const user = getCurrentUser();
+      const jenis = document.getElementById("reqJenis").value;
+      const cabang = document.getElementById("reqCabang").value;
+      const mitra = document.getElementById("reqMitra").value;
+      const skuLama = document.getElementById("reqSkuLama").value;
+      const namaProduk = document.getElementById("reqNamaProduk").value.trim();
+      const harga = Number(document.getElementById("reqHarga").value);
+      const qKemasan = Number(document.getElementById("reqQcKemasan").value);
+      const qRasa = Number(document.getElementById("reqQcRasa").value);
+      const qSuhu = Number(document.getElementById("reqQcSuhu").value);
+
+      if (!namaProduk) {
+        showToast("Nama produk usulan wajib diisi!", "error");
+        return;
+      }
+
+      const newReq = {
+        ID_PENGAJUAN: `REQ-20261124-${state.simTime.replace(":", "")}99`,
+        Email_SPV: user.Email_User,
+        Jenis_Pengajuan: jenis,
+        Cabang_ID: cabang,
+        ID_MITRA: mitra,
+        ID_SKU_LAMA: jenis === "UBAH_HARGA_SKU" ? skuLama : "-",
+        Nama_Produk_Usulan: namaProduk,
+        Harga_Usulan: harga,
+        Skor_QC_Kemasan: qKemasan,
+        Skor_QC_Rasa: qRasa,
+        Skor_QC_SuhuRuang: qSuhu,
+        Foto_Sampel_QC: state.qcPhotoCaptured || "CAM_QC_SAMPEL_NEW.jpg",
+        Tanggal_Efektif: "2026-11-25",
+        Status_Approval: "MENUNGGU_PUSAT"
+      };
+
+      db.pengajuanSku.unshift(newReq);
+      state.qcPhotoCaptured = null;
+      state.activeSheetTab = "9_PENGAJUAN_SKU_HARGA";
+      showToast("Pengajuan SKU/Harga terkirim ke Admin Pusat (Berlaku H+1 setelah disetujui).");
+      renderAll();
+    }
+
+    function processSkuProposal(idReq, decision) {
+      const req = db.pengajuanSku.find(r => r.ID_PENGAJUAN === idReq);
+      if (!req) return;
+      const avgQc = (req.Skor_QC_Kemasan * 0.3) + (req.Skor_QC_Rasa * 0.4) + (req.Skor_QC_SuhuRuang * 0.3);
+
+      if (decision === "DISETUJUI" && req.Jenis_Pengajuan === "TAMBAH_SKU_BARU" && avgQc < 75) {
+        showToast(`Valid_If Gagal: Skor QC (${avgQc.toFixed(1)}) di bawah syarat minimum 75!`, "error");
+        return;
+      }
+
+      req.Status_Approval = decision;
+      if (decision === "DISETUJUI") {
+        if (req.Jenis_Pengajuan === "TAMBAH_SKU_BARU") {
+          const countExisting = db.skuCabang.filter(s => s.Cabang_ID === req.Cabang_ID && s.ID_MITRA === req.ID_MITRA).length + 1;
+          const cleanCb = req.Cabang_ID.replace("-", "");
+          const newSkuId = `${cleanCb}-${req.ID_MITRA}-0${countExisting}`;
+          db.skuCabang.push({
+            ID_SKU_CABANG: newSkuId,
+            Cabang_ID: req.Cabang_ID,
+            ID_MITRA: req.ID_MITRA,
+            Nama_Produk: `${req.Nama_Produk_Usulan} [H+1]`,
+            Harga_Jual: req.Harga_Usulan,
+            Status_SKU: "AKTIF"
+          });
+          state.activeSheetTab = "2_MASTER_SKU_CABANG";
+          showToast(`Bot Otomatis: SKU baru ${newSkuId} ditambahkan ke 2_MASTER_SKU_CABANG!`);
+        } else if (req.Jenis_Pengajuan === "UBAH_HARGA_SKU") {
+          const targetSku = db.skuCabang.find(s => s.ID_SKU_CABANG === req.ID_SKU_LAMA);
+          if (targetSku) targetSku.Harga_Jual = req.Harga_Usulan;
+          state.activeSheetTab = "2_MASTER_SKU_CABANG";
+          showToast(`Bot Otomatis: Harga ${req.ID_SKU_LAMA} diperbarui ke ${formatRp(req.Harga_Usulan)} (Transaksi hari ini tetap aman!).`);
+        }
+      } else {
+        showToast(`Pengajuan ${idReq} ditolak.`, "warning");
+      }
+      renderAll();
+    }
+
+    function updateGlobalCommission(newRate) {
+      const rate = Number(newRate);
+      db.users.forEach(u => u.Komisi_Aktif_Global = rate);
+      state.activeSheetTab = "0_MASTER_USER_PARAM";
+      showToast(`Parameter Komisi Aktif diubah menjadi ${formatRp(rate)}/pcs untuk transaksi baru.`);
+      renderAll();
+    }
+
+    function addCustomerComplaint(e) {
+      e.preventDefault();
+      const cabang = document.getElementById("kmpCabang").value;
+      const mitra = document.getElementById("kmpMitra").value;
+      const qty = Math.max(1, Number(document.getElementById("kmpQty").value));
+      const hargaRef = Number(document.getElementById("kmpHargaRef").value);
+      const alasan = document.getElementById("kmpAlasan").value.trim() || "Komplain kualitas produk konsumen";
+      const komisiAktif = db.users[0].Komisi_Aktif_Global;
+      const potongan = qty * (hargaRef - komisiAktif);
+
+      db.komplain.unshift({
+        ID_KOMPLAIN: `KMP-20261124-${state.simTime.replace(":", "")}`,
+        Tanggal_Kejadian: TODAY_DATE,
+        Cabang_ID: cabang,
+        ID_MITRA: mitra,
+        ID_SKU_CABANG: `${cabang.replace("-", "")}-${mitra}-01`,
+        Qty_Komplain: qty,
+        Nominal_Potongan_Mitra: potongan,
+        Alasan: alasan,
+        Foto_Bukti_Komplain: "CAM_KOMPLAIN_WA.jpg"
+      });
+
+      state.activeSheetTab = "6_LOG_KOMPLAIN_MITRA";
+      showToast(`Komplain dicatat! Payout ${mitra} - ${getMitraName(mitra)} terpotong ${formatRp(potongan)}.`);
+      renderAll();
+    }
+
+    function openMitraCleanPayoutWa(idMitra) {
+      const recap = computePayoutRecap().find(r => r.ID_MITRA === idMitra);
+      if (!recap) return;
+
+      const komplainLine = recap.Total_Potongan_Komplain > 0
+        ? `Potongan Klaim Komplain: -${formatRp(recap.Total_Potongan_Komplain)}\n`
+        : "";
+      const bankLine = recap.Biaya_Admin_Bank > 0
+        ? `Biaya Admin Transfer (${recap.Bank_Tujuan}): -${formatRp(recap.Biaya_Admin_Bank)}\n`
+        : "";
+
+      const waMsg = `*RINCIAN PENCAIRAN DANA LAPAK SEPULUH*\nMitra: ${recap.ID_MITRA} - ${recap.Nama_Mitra}\nPeriode: ${recap.Kode_Siklus}\n\nTotal Produk Terjual: ${recap.Total_Qty_Terjual} pcs\nRincian Bersih per Cabang:\n${recap.Rincian_Per_Cabang}\n${komplainLine}${bankLine}*Total Diterima (Transfer ${recap.Bank_Tujuan}): ${formatRp(recap.Total_Transfer_Diterima)}*\n\nBukti transfer terlampir. Terima kasih telah bermitra dengan Lapak Sepuluh.`;
+
+      openCustomModal(
+        `Rincian Payout Bersih (${recap.ID_MITRA} - ${recap.Nama_Mitra})`,
+        `<div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-950 font-mono whitespace-pre-wrap leading-relaxed" id="waMitraPayoutTarget">${waMsg}</div>
+         <p class="text-[11px] text-slate-500">Hanya menampilkan <strong>Total Terjual</strong> dan <strong>Nominal Bersih Diterima</strong> (tanpa angka potongan komisi admin).</p>`,
+        `<button onclick="copyTextFromElement('waMitraPayoutTarget')" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold">Salin Rincian</button>
+         <button onclick="markMitraTransferred('${idMitra}')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold">Tandai Sudah Transfer</button>`
+      );
+    }
+
+    function markMitraTransferred(idMitra) {
+      db.payoutStatus[idMitra] = { Status_Transfer: "SUDAH_DITRANSFER", Bukti_Transfer_Admin: `TRF_BRI_${idMitra}.jpg` };
+      closeCustomModal();
+      state.activeSheetTab = "7_REKAP_PAYOUT_3HARIAN";
+      showToast(`Status transfer ${idMitra} - ${getMitraName(idMitra)} diperbarui menjadi SUDAH_DITRANSFER.`);
+      renderAll();
+    }
+
+    function downloadBankMassCsv() {
+      const rows = computePayoutRecap().filter(r => r.Total_Transfer_Diterima > 0 && r.Status_Transfer === "SIAP_TRANSFER");
+      const headers = ["NO", "BANK_TUJUAN", "NO_REKENING", "NAMA_PEMILIK_REKENING", "NOMINAL_TRANSFER", "BERITA_TRANSFER", "REFERENSI_INTERNAL"];
+      const csvLines = [headers.join(",")];
+      rows.forEach((r, idx) => {
+        csvLines.push([
+          idx + 1,
+          r.Bank_Tujuan,
+          `"${r.No_Rekening}"`,
+          `"${r.Nama_Pemilik_Rek}"`,
+          r.Total_Transfer_Diterima,
+          `"PAYOUT L10 ${r.Kode_Siklus}"`,
+          `"${r.ID_MITRA} (${r.Rincian_Per_Cabang})"`
+        ].join(","));
+      });
+
+      triggerCsvDownload(csvLines.join("\n"), `MASS_DISBURSEMENT_BRI_BNI_${CYCLE_CODE}.csv`);
+      showToast(`File Mass Disbursement (${rows.length} mitra) berhasil diunduh!`);
+    }
+
+    function triggerCsvDownload(csvContent, filename) {
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function openCustomModal(title, bodyHtml, footerHtml) {
+      const titleEl = document.getElementById("modalTitle");
+      const bodyEl = document.getElementById("modalBody");
+      const footerEl = document.getElementById("modalFooter");
+      const backdrop = document.getElementById("customModalBackdrop");
+      if (titleEl) titleEl.textContent = title;
+      if (bodyEl) bodyEl.innerHTML = bodyHtml;
+      if (footerEl) footerEl.innerHTML = footerHtml;
+      if (backdrop) {
+        backdrop.classList.remove("hidden");
+        backdrop.classList.add("flex");
+      }
+    }
+
+    function closeCustomModal() {
+      const backdrop = document.getElementById("customModalBackdrop");
+      if (backdrop) {
+        backdrop.classList.add("hidden");
+        backdrop.classList.remove("flex");
+      }
+    }
+
+    function copyTextFromElement(elId) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      const textarea = document.createElement("textarea");
+      textarea.value = el.textContent;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showToast("Teks berhasil disalin ke clipboard!");
+      } catch (err) {
+        showToast("Gagal menyalin teks.", "error");
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // =========================================================================
+    // 6. APPSHEET RENDER ENGINE (PER ROLE & PER TAB)
+    // =========================================================================
+    function renderAppSheet() {
+      const user = getCurrentUser();
+      const headerTitle = document.getElementById("appHeaderTitle");
+      const headerSub = document.getElementById("appHeaderSubtitle");
+      const lockBtn = document.getElementById("lockPinBtn");
+      const screenBody = document.getElementById("appScreenBody");
+      const bottomNav = document.getElementById("appBottomNav");
+      if (!headerTitle || !headerSub || !lockBtn || !screenBody || !bottomNav) return;
+
+      // --- ROLE 1: KASIR CABANG ---
+      if (user.Role === "KASIR") {
+        const cabangId = user.Cabang_Akses;
+        headerTitle.textContent = `Lapak Sepuluh • ${cabangId}`;
+        headerSub.textContent = user.Nama_User;
+        const isUnlocked = !!state.unlockedPins[cabangId];
+
+        if (!isUnlocked) {
+          lockBtn.classList.add("hidden");
+          bottomNav.innerHTML = `<div class="col-span-4 text-center text-[11px] text-slate-400 py-1.5">Security Filter Terkunci • Masukkan PIN ${cabangId}</div>`;
+          screenBody.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs text-center space-y-4 mt-4">
+              <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-800 mx-auto flex items-center justify-center">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <div>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">SECURITY FILTER AKTIF</span>
+                <h2 class="font-bold text-base text-slate-900 mt-1.5">Verifikasi PIN ${cabangId}</h2>
+                <p class="text-xs text-slate-500 mt-1">Akun kasir diisolasi khusus untuk <strong>${cabangId}</strong>. Data 9 cabang lainnya terblokir di tingkat server.</p>
+              </div>
+              <div class="space-y-2">
+                <input id="kasirPinInput" type="password" maxlength="6" placeholder="Masukkan 6 Digit PIN" value="${state.pinInputBuffer}"
+                  onkeydown="if(event.key==='Enter') verifyKasirPin('${cabangId}', '${user.PIN_Cabang}')"
+                  class="w-full text-center tracking-[0.4em] font-mono font-bold text-lg py-2.5 px-3 rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-none" />
+                <button onclick="verifyKasirPin('${cabangId}', '${user.PIN_Cabang}')" class="w-full py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-semibold text-xs shadow-sm transition">
+                  Buka Sesi Operasional ${cabangId}
+                </button>
+                <button onclick="autoFillKasirPin('${cabangId}', '${user.PIN_Cabang}')" class="w-full py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-semibold text-[11px] transition">
+                  ⚡ Isi PIN Cabang (${user.PIN_Cabang})
+                </button>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        // Unlocked Kasir Workspace (4 Tabs)
+        lockBtn.classList.remove("hidden");
+        const navItems = [
+          { id: "inbound", label: "1. Barang Masuk", icon: "📦" },
+          { id: "sisa", label: "2. Stok Opname", icon: "📋" },
+          { id: "laporan_sisa", label: "3. Sheet Sisa", icon: "📊" },
+          { id: "closing", label: "4. Blind Closing", icon: "🔒" }
+        ];
+        bottomNav.className = "bg-white border-t border-slate-200 px-1.5 py-1.5 grid grid-cols-4 gap-1 shrink-0";
+        bottomNav.innerHTML = navItems.map(n => `
+          <button onclick="state.activeAppTab='${n.id}'; renderAppSheet();"
+            class="flex flex-col items-center py-1 rounded-xl text-[10px] font-semibold transition ${state.activeAppTab === n.id ? 'bg-emerald-50 text-emerald-800' : 'text-slate-500 hover:text-slate-800'}">
+            <span class="text-sm leading-none mb-0.5">${n.icon}</span>
+            <span class="truncate max-w-full">${n.label}</span>
+          </button>
+        `).join("");
+
+        const gates = checkTimeGates(cabangId);
+        const sortedMitras = getSortedBranchMitras(cabangId);
+        const branchRows = db.transaksi
+          .filter(t => t.Cabang_ID === cabangId && t.Tanggal === TODAY_DATE)
+          .sort(sortTrxByMitraAndSku)
+          .map(computeTrxRow);
+
+        // --- KASIR TAB 1: BARANG MASUK ---
+        if (state.activeAppTab === "inbound") {
+          if (!sortedMitras.some(m => m.ID_MITRA === state.selectedInboundMitra) && sortedMitras.length > 0) {
+            state.selectedInboundMitra = sortedMitras[0].ID_MITRA;
+          }
+          const selectedMitraRows = branchRows.filter(r => r.ID_MITRA === state.selectedInboundMitra);
+          const existingProof = db.inboundSubuh.find(p => p.Cabang_ID === cabangId && p.Tanggal === TODAY_DATE && p.ID_MITRA === state.selectedInboundMitra);
+
+          const totalMasukCabang = branchRows.reduce((s, r) => s + r.MASUK_FINAL, 0);
+          const mitraSudahInputCount = sortedMitras.filter(m => branchRows.filter(r => r.ID_MITRA === m.ID_MITRA).reduce((s, x) => s + x.MASUK_FINAL, 0) > 0).length;
+
+          screenBody.innerHTML = `
+            <div class="rounded-xl p-2.5 border text-xs flex items-center justify-between ${gates.canKasirEditMasuk ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-amber-50 border-amber-200 text-amber-900'}">
+              <div>
+                <span class="font-bold">${gates.canKasirEditMasuk ? '🟢 Inbound Subuh Terbuka (05.00–07.00)' : '🔒 Inbound Terkunci (> 07.00 WIB)'}</span>
+                <p class="text-[11px] opacity-85 mt-0.5">${gates.canKasirEditMasuk ? 'Pilih mitra dari dropdown (LS01..akhir), input masuk, & foto bukti jika perlu.' : 'Salah ketik hanya bisa dikoreksi SPV (< 13.30).'}</p>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="font-bold text-xs text-slate-900 uppercase tracking-wide">Input Barang Masuk per Mitra</h3>
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Urut LS01→Akhir</span>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">1. Pilih Mitra (Terurut Kode LS01 s.d. Akhir):</label>
+                <select onchange="state.selectedInboundMitra=this.value; state.capturedInboundPhoto=null; renderAppSheet();"
+                  class="w-full text-xs font-bold bg-emerald-50/60 border border-emerald-300 text-emerald-950 rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-600">
+                  ${sortedMitras.map(m => {
+                    const mSum = branchRows.filter(r => r.ID_MITRA === m.ID_MITRA).reduce((s, r) => s + r.MASUK_FINAL, 0);
+                    return `<option value="${m.ID_MITRA}" ${state.selectedInboundMitra === m.ID_MITRA ? 'selected' : ''}>${m.ID_MITRA} - ${m.Nama_Mitra} (${mSum > 0 ? mSum + ' pcs' : 'Belum Input'})</option>`;
+                  }).join("")}
+                </select>
+              </div>
+
+              <div class="bg-slate-50 rounded-xl border border-slate-200 divide-y divide-slate-200/80">
+                ${selectedMitraRows.map(r => {
+                  const sku = getSkuInfo(r.ID_SKU_CABANG);
+                  return `
+                    <div class="p-2.5 flex items-center justify-between gap-2">
+                      <div class="min-w-0 flex-1">
+                        <div class="text-[10px] font-mono font-bold text-emerald-700">${r.ID_SKU_CABANG}</div>
+                        <div class="font-semibold text-xs text-slate-900 truncate">${sku.Nama_Produk}</div>
+                        <div class="text-[10px] text-slate-500 font-mono">${formatRp(r.Harga_Snapshot)}</div>
+                      </div>
+                      <div class="flex items-center gap-1.5 shrink-0">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Masuk</label>
+                        <input type="number" min="0" value="${r.MASUK_KASIR}" ${!gates.canKasirEditMasuk ? 'disabled' : ''}
+                          onchange="updateTrxQty('${r.ID_TRX}', 'MASUK_KASIR', this.value)"
+                          class="w-16 text-center font-mono font-bold text-sm py-1.5 px-2 rounded-lg border ${gates.canKasirEditMasuk ? 'border-emerald-500 bg-white text-slate-900 shadow-2xs' : 'border-slate-200 bg-slate-100 text-slate-500'}" />
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+
+              <div class="pt-1 border-t border-slate-100 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-semibold text-slate-700">2. Foto Bukti Penerimaan Barang</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">OPSIONAL</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="simulateCameraCapture('inbound', 'Bukti Terima ${state.selectedInboundMitra}')" ${!gates.canKasirEditMasuk ? 'disabled' : ''}
+                    class="flex-1 py-2 px-2.5 rounded-xl border border-dashed ${state.capturedInboundPhoto || existingProof?.Foto_Bukti_Penerimaan?.startsWith('CAM') ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100'} text-[11px] font-semibold truncate disabled:opacity-50">
+                    📷 ${state.capturedInboundPhoto || existingProof?.Foto_Bukti_Penerimaan || 'Ambil Foto Bukti (Opsional)'}
+                  </button>
+                  <button type="button" onclick="saveOptionalInboundReceipt()" ${!gates.canKasirEditMasuk ? 'disabled' : ''}
+                    class="py-2 px-3 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold shrink-0 disabled:opacity-50">
+                    Simpan
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- LIVE PRODUCT DASHBOARD BELOW INPUT -->
+            <div class="space-y-2.5 pt-1">
+              <div class="bg-emerald-900 text-white rounded-2xl p-3 shadow-xs">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Dashboard Produk Live • ${cabangId}</div>
+                    <h4 class="font-bold text-xs">Semua Mitra Terurut (${sortedMitras[0]?.ID_MITRA || 'LS01'} s.d. ${sortedMitras[sortedMitras.length - 1]?.ID_MITRA || 'LS08'})</h4>
+                  </div>
+                  <div class="text-right font-mono">
+                    <div class="text-sm font-extrabold text-emerald-300">${totalMasukCabang} pcs</div>
+                    <div class="text-[10px] text-emerald-200">${mitraSudahInputCount}/${sortedMitras.length} Mitra Input</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                ${sortedMitras.map(m => {
+                  const mRows = branchRows.filter(r => r.ID_MITRA === m.ID_MITRA);
+                  const subtotalMasuk = mRows.reduce((s, r) => s + r.MASUK_FINAL, 0);
+                  const isSelected = m.ID_MITRA === state.selectedInboundMitra;
+                  return `
+                    <div onclick="selectInboundMitraFromDashboard('${m.ID_MITRA}')"
+                      class="bg-white rounded-xl border ${isSelected ? 'border-emerald-500 ring-1 ring-emerald-500/30' : 'border-slate-200'} overflow-hidden shadow-2xs cursor-pointer transition hover:border-emerald-400">
+                      <div class="px-3 py-2 ${subtotalMasuk > 0 ? 'bg-emerald-50/80' : 'bg-slate-50'} border-b border-slate-200/80 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                          <span class="px-1.5 py-0.5 rounded bg-emerald-800 text-white font-mono font-bold text-[10px] shrink-0">${m.ID_MITRA}</span>
+                          <span class="font-bold text-xs text-slate-900 truncate">${m.Nama_Mitra}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                          <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${subtotalMasuk > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-200 text-slate-600'}">
+                            ${subtotalMasuk > 0 ? 'SUDAH INPUT' : 'BELUM / 0'}
+                          </span>
+                          <span class="font-mono font-extrabold text-xs text-slate-800">${subtotalMasuk} pcs</span>
+                        </div>
+                      </div>
+                      <div class="divide-y divide-slate-100">
+                        ${mRows.map(r => {
+                          const sku = getSkuInfo(r.ID_SKU_CABANG);
+                          return `
+                            <div class="px-3 py-2 flex items-center justify-between text-xs">
+                              <div class="min-w-0 pr-2">
+                                <span class="font-mono text-[10px] text-slate-400 mr-1">${r.ID_SKU_CABANG}</span>
+                                <span class="font-medium text-slate-800">${sku.Nama_Produk}</span>
+                              </div>
+                              <span class="font-mono font-bold px-2 py-0.5 rounded text-[11px] shrink-0 ${r.MASUK_FINAL > 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-slate-100 text-slate-400'}">
+                                Masuk: ${r.MASUK_FINAL}
+                              </span>
+                            </div>
+                          `;
+                        }).join("")}
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          `;
+        }
+
+        // --- KASIR TAB 2: STOK OPNAME / INPUT SISA ---
+        else if (state.activeAppTab === "sisa") {
+          if (!sortedMitras.some(m => m.ID_MITRA === state.selectedOpnameMitra) && sortedMitras.length > 0) {
+            state.selectedOpnameMitra = sortedMitras[0].ID_MITRA;
+          }
+          const selectedMitraRows = branchRows.filter(r => r.ID_MITRA === state.selectedOpnameMitra);
+          const totalMasukAll = branchRows.reduce((s, r) => s + r.MASUK_FINAL, 0);
+          const totalTerjualAll = branchRows.reduce((s, r) => s + r.TERJUAL, 0);
+          const totalSisaAll = branchRows.reduce((s, r) => s + r.SISA_FINAL, 0);
+
+          screenBody.innerHTML = `
+            <div class="rounded-xl p-2.5 border text-xs flex items-center justify-between ${gates.canKasirEditSisa ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-amber-50 border-amber-200 text-amber-900'}">
+              <div>
+                <span class="font-bold">${gates.canKasirEditSisa ? '🟢 Stok Opname Terbuka (11.00–13.30 WIB)' : '🔒 Stok Opname Terkunci (< 11.00 / > 13.30 WIB)'}</span>
+                <p class="text-[11px] opacity-85 mt-0.5">${gates.canKasirEditSisa ? 'Pilih mitra urut LS01..akhir lalu ketik SISA (termasuk barang rusak/basi).' : 'Gunakan simulasi jam 11:15 WIB untuk membuka input SISA.'}</p>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="font-bold text-xs text-slate-900 uppercase tracking-wide">Stok Opname Sisa per Mitra</h3>
+                <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Urut LS01→Akhir</span>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Pilih Mitra (Terurut LS01 s.d. Akhir):</label>
+                <select onchange="state.selectedOpnameMitra=this.value; renderAppSheet();"
+                  class="w-full text-xs font-bold bg-emerald-50/60 border border-emerald-300 text-emerald-950 rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-600">
+                  ${sortedMitras.map(m => {
+                    const mRows = branchRows.filter(r => r.ID_MITRA === m.ID_MITRA);
+                    const mMasuk = mRows.reduce((s, r) => s + r.MASUK_FINAL, 0);
+                    const mSisa = mRows.reduce((s, r) => s + r.SISA_FINAL, 0);
+                    return `<option value="${m.ID_MITRA}" ${state.selectedOpnameMitra === m.ID_MITRA ? 'selected' : ''}>${m.ID_MITRA} - ${m.Nama_Mitra} (Masuk: ${mMasuk} | Sisa: ${mSisa})</option>`;
+                  }).join("")}
+                </select>
+              </div>
+
+              <div class="bg-slate-50 rounded-xl border border-slate-200 divide-y divide-slate-200/80">
+                ${selectedMitraRows.map(r => {
+                  const sku = getSkuInfo(r.ID_SKU_CABANG);
+                  return `
+                    <div class="p-2.5 space-y-1.5">
+                      <div class="flex items-center justify-between">
+                        <div class="min-w-0 pr-2">
+                          <div class="text-[10px] font-mono font-bold text-emerald-700">${r.ID_SKU_CABANG}</div>
+                          <div class="font-semibold text-xs text-slate-900 truncate">${sku.Nama_Produk}</div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 font-mono font-bold text-[11px] shrink-0">
+                          Terjual: ${r.TERJUAL}
+                        </span>
+                      </div>
+                      <div class="flex items-center justify-between text-xs pt-1">
+                        <span class="text-[11px] text-slate-500">Masuk Final: <strong class="font-mono text-slate-800">${r.MASUK_FINAL}</strong></span>
+                        <div class="flex items-center gap-1.5">
+                          <label class="text-[11px] font-bold text-slate-600">Input Sisa:</label>
+                          <input type="number" min="0" max="${r.MASUK_FINAL}" value="${r.SISA_KASIR}" ${!gates.canKasirEditSisa ? 'disabled' : ''}
+                            onchange="updateTrxQty('${r.ID_TRX}', 'SISA_KASIR', this.value)"
+                            class="w-16 text-center font-mono font-bold text-sm py-1 px-2 rounded-lg border ${gates.canKasirEditSisa ? 'border-emerald-500 bg-white text-slate-900' : 'border-slate-200 bg-slate-100 text-slate-500'}" />
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+
+            <div class="space-y-2.5 pt-1">
+              <div class="bg-slate-900 text-white rounded-2xl p-3 shadow-xs">
+                <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1.5">Dashboard Live Sisa & Terjual • ${cabangId}</div>
+                <div class="grid grid-cols-3 gap-2 text-center bg-white/10 rounded-xl p-2 font-mono">
+                  <div>
+                    <div class="text-[10px] text-slate-300">Total Masuk</div>
+                    <div class="font-extrabold text-sm text-white">${totalMasukAll}</div>
+                  </div>
+                  <div class="border-x border-white/15">
+                    <div class="text-[10px] text-emerald-300">Terjual</div>
+                    <div class="font-extrabold text-sm text-emerald-400">${totalTerjualAll}</div>
+                  </div>
+                  <div>
+                    <div class="text-[10px] text-amber-300">Sisa Retur</div>
+                    <div class="font-extrabold text-sm text-amber-300">${totalSisaAll}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                ${sortedMitras.map(m => {
+                  const mRows = branchRows.filter(r => r.ID_MITRA === m.ID_MITRA);
+                  const mMasuk = mRows.reduce((s, r) => s + r.MASUK_FINAL, 0);
+                  const mTerjual = mRows.reduce((s, r) => s + r.TERJUAL, 0);
+                  const mSisa = mRows.reduce((s, r) => s + r.SISA_FINAL, 0);
+                  const mNetMitra = mRows.reduce((s, r) => s + r.Omset_Bersih_Mitra, 0);
+                  const isSelected = m.ID_MITRA === state.selectedOpnameMitra;
+
+                  return `
+                    <div onclick="selectOpnameMitraFromDashboard('${m.ID_MITRA}')"
+                      class="bg-white rounded-xl border ${isSelected ? 'border-emerald-500 ring-1 ring-emerald-500/30' : 'border-slate-200'} overflow-hidden shadow-2xs cursor-pointer transition hover:border-emerald-400">
+                      <div class="px-3 py-2 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                          <span class="px-1.5 py-0.5 rounded bg-emerald-800 text-white font-mono font-bold text-[10px] shrink-0">${m.ID_MITRA}</span>
+                          <span class="font-bold text-xs text-slate-900 truncate">${m.Nama_Mitra}</span>
+                        </div>
+                        <span class="font-mono font-bold text-[11px] text-emerald-800 shrink-0">${formatRp(mNetMitra)}</span>
+                      </div>
+                      <div class="divide-y divide-slate-100">
+                        ${mRows.map(r => {
+                          const sku = getSkuInfo(r.ID_SKU_CABANG);
+                          return `
+                            <div class="px-3 py-2 flex items-center justify-between gap-2 text-xs">
+                              <div class="min-w-0 flex-1">
+                                <div class="font-medium text-slate-800 truncate">${sku.Nama_Produk}</div>
+                                <div class="text-[10px] font-mono text-slate-400">${r.ID_SKU_CABANG}</div>
+                              </div>
+                              <div class="flex items-center gap-1.5 font-mono text-[10px] shrink-0">
+                                <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">M:${r.MASUK_FINAL}</span>
+                                <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 font-bold">L:${r.TERJUAL}</span>
+                                <span class="px-1.5 py-0.5 rounded ${r.SISA_FINAL > 0 ? 'bg-amber-100 text-amber-900 font-bold' : 'bg-slate-100 text-slate-500'}">S:${r.SISA_FINAL}</span>
+                              </div>
+                            </div>
+                          `;
+                        }).join("")}
+                      </div>
+                      <div class="px-3 py-1.5 bg-slate-50/70 border-t border-slate-100 flex justify-between text-[10px] font-mono text-slate-600">
+                        <span>Subtotal ${m.ID_MITRA}:</span>
+                        <span>Masuk: <strong>${mMasuk}</strong> | Laku: <strong class="text-emerald-700">${mTerjual}</strong> | Sisa: <strong class="text-amber-700">${mSisa}</strong></span>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          `;
+        }
+
+        // --- KASIR TAB 3: LAPORAN SISA DALAM BENTUK SPREADSHEET ---
+        else if (state.activeAppTab === "laporan_sisa") {
+          const sheetRows = computeSpreadsheetLaporanSisa(cabangId);
+          screenBody.innerHTML = `
+            <div class="bg-emerald-900 text-white rounded-2xl p-3.5 shadow-xs space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Format Spreadsheet Rapi • Pukul 11.30 WIB</span>
+                <span class="font-mono text-[10px] bg-emerald-800 px-2 py-0.5 rounded">${cabangId}</span>
+              </div>
+              <h3 class="font-bold text-sm">Laporan Sisa & Terjual (Urut Kode Mitra LS01..Akhir)</h3>
+              <p class="text-[11px] text-emerald-100">Dibagikan dalam bentuk <strong>Spreadsheet View-Only</strong> agar mitra mudah menemukan produknya sesuai urutan kode mitra & SKU.</p>
+              <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="copySpreadsheetSisaLink('${cabangId}')" class="py-2 px-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-extrabold text-[11px] shadow-xs transition">
+                  🔗 Salin Link Spreadsheet WA
+                </button>
+                <button onclick="downloadBranchSisaSpreadsheetCsv('${cabangId}')" class="py-2 px-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-[11px] border border-white/20 transition">
+                  ⬇️ Download CSV Cabang
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-300 overflow-hidden shadow-xs">
+              <div class="bg-slate-100 px-3 py-2 border-b border-slate-300 flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-xs bg-emerald-600 inline-block"></span>
+                  <span class="font-mono font-bold text-[11px] text-slate-800">10_VIEW_LAPORAN_SISA_${cabangId}</span>
+                </div>
+                <button onclick="openMitraSpreadsheetPreviewModal('${cabangId}')" class="text-[10px] font-bold text-emerald-800 underline">
+                  Perbesar Tabel
+                </button>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-[10px] font-mono">
+                  <thead>
+                    <tr class="bg-slate-50 border-b border-slate-300 text-slate-700">
+                      <th class="p-2 border-r border-slate-200">Mitra</th>
+                      <th class="p-2 border-r border-slate-200">Kode SKU</th>
+                      <th class="p-2 border-r border-slate-200">Produk</th>
+                      <th class="p-2 border-r border-slate-200 text-right">Msk</th>
+                      <th class="p-2 border-r border-slate-200 text-right">Laku</th>
+                      <th class="p-2 border-r border-slate-200 text-right">Sisa</th>
+                      <th class="p-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-200">
+                    ${sheetRows.map(r => `
+                      <tr class="${r.Sisa_Retur > 0 ? 'bg-amber-50/40' : ''}">
+                        <td class="p-2 border-r border-slate-200 whitespace-nowrap font-bold text-emerald-900">${r.Kode_Mitra} - ${r.Nama_Mitra}</td>
+                        <td class="p-2 border-r border-slate-200 whitespace-nowrap text-slate-600">${r.Kode_SKU}</td>
+                        <td class="p-2 border-r border-slate-200 font-sans text-slate-800 whitespace-nowrap">${r.Nama_Produk}</td>
+                        <td class="p-2 border-r border-slate-200 text-right">${r.Masuk}</td>
+                        <td class="p-2 border-r border-slate-200 text-right font-bold text-emerald-700">${r.Terjual}</td>
+                        <td class="p-2 border-r border-slate-200 text-right font-bold ${r.Sisa_Retur > 0 ? 'text-amber-700' : 'text-slate-500'}">${r.Sisa_Retur}</td>
+                        <td class="p-2 whitespace-nowrap font-bold ${r.Status === 'ADA SISA RETUR' ? 'text-amber-700' : r.Status === 'HABIS TERJUAL' ? 'text-emerald-700' : 'text-slate-400'}">${r.Status}</td>
+                      </tr>
+                    `).join("")}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+        }
+
+        // --- KASIR TAB 4: BLIND CLOSING & SETORAN ---
+        else if (state.activeAppTab === "closing") {
+          const existingClosing = getBranchClosing(cabangId, TODAY_DATE);
+          if (existingClosing) {
+            const comp = computeClosingRow(existingClosing);
+            const isMinus = comp.Selisih_Kasir < 0;
+            const isKlop = comp.Selisih_Kasir === 0;
+            screenBody.innerHTML = `
+              <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Post-Save Reveal • Blind Closing</span>
+                    <h3 class="font-bold text-sm text-slate-900">Hasil Tutup Buku ${cabangId}</h3>
+                  </div>
+                  <span class="px-2 py-1 rounded-lg text-[10px] font-bold ${comp.Status_Closing === 'LOCKED_SETTLED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                    ${comp.Status_Closing}
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <div class="text-[10px] text-slate-500">Omset Kotor Sistem</div>
+                    <div class="font-mono font-bold text-sm text-slate-900 mt-0.5">${formatRp(comp.Omset_Kotor_Sistem)}</div>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <div class="text-[10px] text-slate-500">Pertanggungjawaban Kasir</div>
+                    <div class="font-mono font-bold text-sm text-slate-900 mt-0.5">${formatRp(comp.Total_Pertanggungjawaban)}</div>
+                  </div>
+                </div>
+
+                <div class="p-3 rounded-xl border ${isKlop ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : isMinus ? 'bg-rose-50 border-rose-300 text-rose-900' : 'bg-amber-50 border-amber-300 text-amber-900'}">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold">${isKlop ? '✅ STATUS KAS: COCOK (KLOP)' : isMinus ? '🚨 STATUS KAS: MINUS (KURANG SETOR)' : '⚠️ STATUS KAS: PLUS (LEBIH SETOR)'}</span>
+                    <span class="font-mono font-extrabold text-sm">${formatRp(comp.Selisih_Kasir)}</span>
+                  </div>
+                  ${isMinus ? `
+                    <div class="mt-2 pt-2 border-t border-rose-200 space-y-1.5">
+                      <p class="text-[11px] font-semibold">Aturan Nol Buffer: Wajib pilih penyelesaian minus hari ini:</p>
+                      <select onchange="updateMinusResolution('${comp.ID_CLOSING}', this.value)" class="w-full text-xs font-bold bg-white border border-rose-300 rounded-lg px-2.5 py-1.5 text-rose-900">
+                        <option value="NOMBOK_TUNAI_HARI_INI" ${comp.Penyelesaian_Minus === 'NOMBOK_TUNAI_HARI_INI' ? 'selected' : ''}>NOMBOK_TUNAI_HARI_INI (Tambah ke Setoran Bank)</option>
+                        <option value="POTONG_GAJI_STAF" ${comp.Penyelesaian_Minus === 'POTONG_GAJI_STAF' ? 'selected' : ''}>POTONG_GAJI_STAF (Tanggung Renteng 3 Staf)</option>
+                      </select>
+                    </div>
+                  ` : ''}
+                </div>
+
+                <div class="p-3 rounded-xl bg-emerald-900 text-white space-y-1.5 text-xs">
+                  <div class="flex justify-between text-emerald-200">
+                    <span>Komisi Kotor L10 (${branchRows.reduce((s, r) => s + r.TERJUAL, 0)} pcs):</span>
+                    <span class="font-mono">${formatRp(comp.Komisi_Kotor_Cabang)}</span>
+                  </div>
+                  <div class="flex justify-between text-amber-300">
+                    <span>Pengeluaran Tunai Laci (${comp.Ket_Pengeluaran}):</span>
+                    <span class="font-mono">-${formatRp(comp.Pengeluaran_Tunai_Laci)}</span>
+                  </div>
+                  <div class="flex justify-between font-bold text-sm pt-1.5 border-t border-emerald-700">
+                    <span>Komisi Aktual Bersih L10:</span>
+                    <span class="font-mono text-emerald-300">${formatRp(comp.Komisi_Aktual_L10)}</span>
+                  </div>
+                </div>
+
+                <div class="text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1">
+                  <div class="flex justify-between"><span>Cash Fisik Laci:</span><span class="font-mono font-semibold">${formatRp(comp.Cash_Fisik_Laci)}</span></div>
+                  <div class="flex justify-between"><span>Total QRIS:</span><span class="font-mono font-semibold">${formatRp(comp.Total_QRIS)}</span></div>
+                  <div class="flex justify-between text-emerald-800 font-bold"><span>Nominal Wajib Setor Bank:</span><span class="font-mono">${formatRp(comp.Nominal_Wajib_Setor_Bank)}</span></div>
+                </div>
+              </div>
+            `;
+          } else {
+            const d = state.closingFormDraft;
+            screenBody.innerHTML = `
+              <div class="bg-slate-900 text-white rounded-2xl p-3.5 shadow-xs space-y-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">🔒 BLIND CLOSING AKTIF</span>
+                  <span class="font-mono text-[10px] text-slate-400">${cabangId}</span>
+                </div>
+                <p class="text-xs text-slate-200">Omset Sistem & Selisih <strong>disembunyikan</strong> sampai Anda memasukkan nominal Pengeluaran Laci, Cash Fisik, dan QRIS.</p>
+              </div>
+
+              <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-3 text-xs">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">1. Pengeluaran Tunai dari Laci (Rp)</label>
+                  <input type="number" min="0" value="${d.pengeluaran}" oninput="state.closingFormDraft.pengeluaran=this.value"
+                    placeholder="0 jika tidak ada belanja" class="w-full font-mono font-bold px-3 py-2 rounded-xl border border-slate-300 focus:border-emerald-600 focus:outline-none" />
+                  <input type="text" value="${d.ketPengeluaran}" oninput="state.closingFormDraft.ketPengeluaran=this.value"
+                    placeholder="Keterangan belanja (misal: Kresek & Galon)" class="w-full mt-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-xs" />
+                  <button type="button" onclick="simulateCameraCapture('nota', 'Nota Belanja Laci')" class="mt-1.5 w-full py-1.5 px-3 rounded-lg border border-dashed ${d.fotoNota ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-slate-300 text-slate-600'} font-semibold text-[11px]">
+                    📷 ${d.fotoNota ? d.fotoNota : 'Foto Nota Belanja (Wajib jika > 0)'}
+                  </button>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100">
+                  <label class="block font-bold text-slate-700 mb-1">2. Total Cash Fisik di Laci (Rp) *</label>
+                  <input type="number" min="0" value="${d.cashFisik}" oninput="state.closingFormDraft.cashFisik=this.value"
+                    placeholder="Contoh: 1200000" class="w-full font-mono font-bold text-sm px-3 py-2 rounded-xl border border-emerald-400 bg-emerald-50/30 focus:outline-none" />
+                </div>
+
+                <div class="pt-2 border-t border-slate-100">
+                  <label class="block font-bold text-slate-700 mb-1">3. Total Mutasi QRIS Hari Ini (Rp) *</label>
+                  <input type="number" min="0" value="${d.totalQris}" oninput="state.closingFormDraft.totalQris=this.value"
+                    placeholder="Contoh: 800000" class="w-full font-mono font-bold text-sm px-3 py-2 rounded-xl border border-emerald-400 bg-emerald-50/30 focus:outline-none" />
+                  <button type="button" onclick="simulateCameraCapture('qris', 'Settlement QRIS')" class="mt-1.5 w-full py-1.5 px-3 rounded-lg border border-dashed ${d.fotoQris ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-slate-300 text-slate-600'} font-semibold text-[11px]">
+                    📷 ${d.fotoQris ? d.fotoQris : 'Foto Settlement QRIS (Wajib)'}
+                  </button>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100">
+                  <label class="block font-bold text-slate-700 mb-1">4. Jalur Setor & Bukti Slip *</label>
+                  <select onchange="state.closingFormDraft.metodeSetor=this.value" class="w-full font-semibold px-3 py-2 rounded-xl border border-slate-300 bg-slate-50">
+                    <option value="SETOR_BANK_BRILINK" ${d.metodeSetor === 'SETOR_BANK_BRILINK' ? 'selected' : ''}>Setor Tunai ke Bank / BRILink</option>
+                    <option value="SERAH_TERIMA_SPV" ${d.metodeSetor === 'SERAH_TERIMA_SPV' ? 'selected' : ''}>Serah Terima Tunai ke SPV</option>
+                  </select>
+                  <button type="button" onclick="simulateCameraCapture('slip', 'Slip Setoran Bank')" class="mt-1.5 w-full py-1.5 px-3 rounded-lg border border-dashed ${d.fotoSlip ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-slate-300 text-slate-600'} font-semibold text-[11px]">
+                    📷 ${d.fotoSlip ? d.fotoSlip : 'Foto Slip Setoran (Wajib)'}
+                  </button>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-[11px] text-amber-900">
+                  <strong>Aturan Nol Buffer:</strong> Jika setelah disimpan ternyata laci minus, staf cabang wajib nombok tunai hari ini atau dipotong gaji tanggal 25.
+                </div>
+
+                <button type="button" onclick="submitBlindClosing('${cabangId}')" class="w-full py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs shadow-md transition">
+                  Simpan & Buka Hitungan Blind Closing
+                </button>
+              </div>
+            `;
+          }
+        }
+        return;
+      }
+
+      // --- ROLE 2: SPV KLASTER (1 SPV = 5 CABANG) ---
+      if (user.Role === "SPV") {
+        lockBtn.classList.add("hidden");
+        const allowedBranches = user.Cabang_Akses.split(",");
+        if (!allowedBranches.includes(state.spvSelectedBranch)) {
+          state.spvSelectedBranch = allowedBranches[0];
+        }
+        headerTitle.textContent = user.Nama_User;
+        headerSub.textContent = `Klaster: ${allowedBranches[0]} s.d. ${allowedBranches[allowedBranches.length - 1]}`;
+
+        const navItems = [
+          { id: "spv_audit", label: "Audit & Koreksi", icon: "🔍" },
+          { id: "spv_setoran", label: "Verif Setoran", icon: "✅" },
+          { id: "spv_sku", label: "Ajukan SKU/Harga", icon: "➕" }
+        ];
+        bottomNav.className = "bg-white border-t border-slate-200 px-2 py-1.5 grid grid-cols-3 gap-1 shrink-0";
+        bottomNav.innerHTML = navItems.map(n => `
+          <button onclick="state.activeAppTab='${n.id}'; renderAppSheet();"
+            class="flex flex-col items-center py-1 rounded-xl text-[11px] font-semibold transition ${state.activeAppTab === n.id ? 'bg-emerald-50 text-emerald-800' : 'text-slate-500 hover:text-slate-800'}">
+            <span class="text-sm leading-none mb-0.5">${n.icon}</span>
+            <span>${n.label}</span>
+          </button>
+        `).join("");
+
+        if (state.activeAppTab === "spv_audit") {
+          const cb = state.spvSelectedBranch;
+          const gates = checkTimeGates(cb);
+          const rows = db.transaksi
+            .filter(t => t.Cabang_ID === cb && t.Tanggal === TODAY_DATE)
+            .sort(sortTrxByMitraAndSku)
+            .map(computeTrxRow);
+          const proofs = db.inboundSubuh.filter(p => p.Cabang_ID === cb && p.Tanggal === TODAY_DATE);
+
+          screenBody.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs space-y-2">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase">Pilih Cabang Binaan (5 Titik):</label>
+              <div class="grid grid-cols-5 gap-1">
+                ${allowedBranches.map(b => `
+                  <button onclick="state.spvSelectedBranch='${b}'; renderAppSheet();"
+                    class="py-1.5 rounded-lg text-xs font-bold border transition ${cb === b ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-slate-50 text-slate-700 border-slate-200'}">
+                    ${b}
+                  </button>
+                `).join("")}
+              </div>
+              <div class="text-[11px] px-2.5 py-1.5 rounded-lg ${gates.canSpvEdit ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'}">
+                ${gates.canSpvEdit ? '🟢 Koreksi SPV Terbuka (< 13.30 WIB & Belum Setor)' : '🔒 Koreksi Terkunci (> 13.30 WIB atau Sudah Setor)'}
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs space-y-1.5">
+              <div class="font-bold text-xs text-slate-800">Log Bukti Penerimaan Subuh (${cb})</div>
+              ${proofs.length === 0 ? `<p class="text-[11px] text-slate-400">Belum ada log penerimaan subuh hari ini.</p>` : proofs.map(p => `
+                <div class="flex items-center justify-between text-[11px] bg-emerald-50/60 px-2.5 py-1.5 rounded-lg border border-emerald-200">
+                  <span class="font-semibold text-slate-800">${p.ID_MITRA} - ${getMitraName(p.ID_MITRA)}</span>
+                  <span class="font-mono text-[10px] text-emerald-800">${p.Foto_Bukti_Penerimaan}</span>
+                </div>
+              `).join("")}
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+              <div class="bg-slate-50 px-3 py-2 border-b border-slate-200">
+                <div class="font-bold text-xs text-slate-800">Kolom Koreksi Terpisah (Urut LS01→Akhir)</div>
+                <p class="text-[10px] text-slate-500">Angka asli kasir tidak pernah tertimpa; koreksi SPV dicatat di kolom khusus.</p>
+              </div>
+              <div class="divide-y divide-slate-100">
+                ${rows.length === 0 ? `<div class="p-4 text-xs text-slate-400 text-center">Belum ada transaksi di ${cb} hari ini.</div>` : rows.map(r => {
+                  const sku = getSkuInfo(r.ID_SKU_CABANG);
+                  return `
+                    <div class="p-3 space-y-2 text-xs">
+                      <div class="flex justify-between items-start">
+                        <div>
+                          <span class="px-1.5 py-0.5 rounded bg-emerald-800 text-white font-mono text-[9px] font-bold mr-1">${r.ID_MITRA}</span>
+                          <span class="font-bold text-slate-900">${sku.Nama_Produk}</span>
+                          <div class="text-[11px] text-slate-500">${getMitraName(r.ID_MITRA)} (${r.ID_SKU_CABANG})</div>
+                        </div>
+                        <span class="font-mono font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">Final Laku: ${r.TERJUAL}</span>
+                      </div>
+
+                      <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                        <div>
+                          <div class="text-[10px] text-slate-500">Masuk Kasir: <strong class="font-mono text-slate-800">${r.MASUK_KASIR}</strong></div>
+                          <div class="flex items-center gap-1 mt-1">
+                            <span class="text-[10px] font-semibold text-amber-700">Koreksi:</span>
+                            <input type="number" min="0" placeholder="-" value="${r.KOREKSI_MASUK_SPV !== null ? r.KOREKSI_MASUK_SPV : ''}" ${!gates.canSpvEdit ? 'disabled' : ''}
+                              onchange="updateSpvCorrection('${r.ID_TRX}', 'KOREKSI_MASUK_SPV', this.value)"
+                              class="w-14 text-center font-mono font-bold text-xs py-1 rounded border border-amber-300 bg-white disabled:bg-slate-100" />
+                          </div>
+                        </div>
+                        <div>
+                          <div class="text-[10px] text-slate-500">Sisa Kasir: <strong class="font-mono text-slate-800">${r.SISA_KASIR}</strong></div>
+                          <div class="flex items-center gap-1 mt-1">
+                            <span class="text-[10px] font-semibold text-amber-700">Koreksi:</span>
+                            <input type="number" min="0" placeholder="-" value="${r.KOREKSI_SISA_SPV !== null ? r.KOREKSI_SISA_SPV : ''}" ${!gates.canSpvEdit ? 'disabled' : ''}
+                              onchange="updateSpvCorrection('${r.ID_TRX}', 'KOREKSI_SISA_SPV', this.value)"
+                              class="w-14 text-center font-mono font-bold text-xs py-1 rounded border border-amber-300 bg-white disabled:bg-slate-100" />
+                          </div>
+                        </div>
+                      </div>
+                      ${r.Log_Edit_SPV ? `<div class="text-[10px] font-mono text-amber-800 bg-amber-50 px-2 py-0.5 rounded">Audit Log: ${r.Log_Edit_SPV}</div>` : ''}
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          `;
+        } else if (state.activeAppTab === "spv_setoran") {
+          const pendingClosings = db.closingSetoran
+            .filter(c => allowedBranches.includes(c.Cabang_ID) && c.Tanggal === TODAY_DATE)
+            .map(computeClosingRow);
+
+          screenBody.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs">
+              <h3 class="font-bold text-xs text-slate-900">Antrean Verifikasi Setoran Klaster</h3>
+              <p class="text-[11px] text-slate-500 mt-0.5">Cek kesesuaian slip setoran bank/BRILink, nota belanja laci, & status penyelesaian minus.</p>
+            </div>
+            ${pendingClosings.length === 0 ? `<div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">Belum ada closing masuk di klaster ini hari ini.</div>` : pendingClosings.map(c => `
+              <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-2.5 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="font-extrabold text-sm text-slate-900">${c.Cabang_ID}</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${c.Status_Closing === 'MENUNGGU_CEK_SPV' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">${c.Status_Closing}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-[11px]">
+                  <div>Omset Sistem: <strong class="font-mono block text-slate-900">${formatRp(c.Omset_Kotor_Sistem)}</strong></div>
+                  <div>Wajib Setor Bank: <strong class="font-mono block text-emerald-800">${formatRp(c.Nominal_Wajib_Setor_Bank)}</strong></div>
+                  <div>Selisih Kasir: <strong class="font-mono block ${c.Selisih_Kasir < 0 ? 'text-rose-700' : 'text-emerald-700'}">${formatRp(c.Selisih_Kasir)}</strong></div>
+                  <div>Minus Action: <strong class="block text-slate-800">${c.Penyelesaian_Minus}</strong></div>
+                </div>
+                <div class="text-[10px] font-mono text-slate-500 space-y-0.5">
+                  <div>📷 Slip Setor: ${c.Foto_Slip_Setor}</div>
+                  <div>📷 Settlement QRIS: ${c.Foto_Settlement_QRIS}</div>
+                  ${c.Pengeluaran_Tunai_Laci > 0 ? `<div>📷 Nota Belanja (${formatRp(c.Pengeluaran_Tunai_Laci)}): ${c.Foto_Nota_Belanja}</div>` : ''}
+                </div>
+                ${c.Status_Closing === 'MENUNGGU_CEK_SPV' ? `
+                  <button onclick="spvVerifyClosing('${c.ID_CLOSING}')" class="w-full py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs shadow-xs">
+                    ✅ [Validasi SPV] Teruskan ke Owner/Manager
+                  </button>
+                ` : `<div class="text-[11px] text-emerald-700 font-semibold">✓ Tervalidasi: ${c.Log_Validasi_SPV}</div>`}
+              </div>
+            `).join("")}
+          `;
+        } else {
+          screenBody.innerHTML = `
+            <form onsubmit="submitSpvSkuProposal(event)" class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-2.5 text-xs">
+              <div class="border-b border-slate-100 pb-2">
+                <span class="text-[10px] font-bold uppercase text-emerald-700">Maker–Checker Workflow</span>
+                <h3 class="font-bold text-sm text-slate-900">Ajukan SKU Baru / Ubah Harga (H+1)</h3>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Jenis Pengajuan</label>
+                <select id="reqJenis" onchange="document.getElementById('skuLamaWrapper').classList.toggle('hidden', this.value!=='UBAH_HARGA_SKU')" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 font-semibold">
+                  <option value="TAMBAH_SKU_BARU">TAMBAH_SKU_BARU (Wajib QC >= 75)</option>
+                  <option value="UBAH_HARGA_SKU">UBAH_HARGA_SKU (Efektif H+1)</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Cabang Klaster</label>
+                  <select id="reqCabang" class="w-full px-2.5 py-2 rounded-xl border border-slate-300 bg-slate-50 font-semibold">
+                    ${allowedBranches.map(b => `<option value="${b}">${b}</option>`).join("")}
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Mitra Pemilik</label>
+                  <select id="reqMitra" class="w-full px-2.5 py-2 rounded-xl border border-slate-300 bg-slate-50 font-semibold">
+                    ${[...db.mitra].sort((a, b) => compareNatural(a.ID_MITRA, b.ID_MITRA)).map(m => `<option value="${m.ID_MITRA}">${m.ID_MITRA} - ${m.Nama_Mitra}</option>`).join("")}
+                  </select>
+                </div>
+              </div>
+
+              <div id="skuLamaWrapper" class="hidden">
+                <label class="block font-semibold text-slate-700 mb-1">Pilih SKU Lama yang Diubah Harganya</label>
+                <select id="reqSkuLama" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-slate-50 font-semibold">
+                  ${db.skuCabang.filter(s => allowedBranches.includes(s.Cabang_ID)).map(s => `<option value="${s.ID_SKU_CABANG}">${s.ID_SKU_CABANG} - ${s.Nama_Produk} (${formatRp(s.Harga_Jual)})</option>`).join("")}
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Nama Produk Usulan *</label>
+                <input id="reqNamaProduk" type="text" placeholder="Contoh: Nasi Bakar Ayam Kemangi" required class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Harga Jual (Terkunci)</label>
+                  <select id="reqHarga" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-emerald-50 font-mono font-bold text-emerald-900">
+                    <option value="10000">Rp 10.000</option>
+                    <option value="15000">Rp 15.000</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Tanggal Efektif</label>
+                  <input type="text" value="2026-11-25 (H+1)" disabled class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-100 font-mono text-slate-600" />
+                </div>
+              </div>
+
+              <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-2">
+                <div class="font-bold text-[11px] text-slate-700">Skor Uji 3 Pilar QC Lapangan:</div>
+                <div class="grid grid-cols-3 gap-1.5 text-center">
+                  <div>
+                    <label class="block text-[10px] text-slate-500">Kemasan (30%)</label>
+                    <input id="reqQcKemasan" type="number" min="0" max="100" value="85" class="w-full text-center font-mono font-bold py-1 rounded border border-slate-300 bg-white" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-slate-500">Rasa (40%)</label>
+                    <input id="reqQcRasa" type="number" min="0" max="100" value="88" class="w-full text-center font-mono font-bold py-1 rounded border border-slate-300 bg-white" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-slate-500">Suhu 14.00 (30%)</label>
+                    <input id="reqQcSuhu" type="number" min="0" max="100" value="80" class="w-full text-center font-mono font-bold py-1 rounded border border-slate-300 bg-white" />
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" onclick="simulateCameraCapture('qc_sampel', 'Sampel Fisik QC')" class="w-full py-1.5 px-3 rounded-lg border border-dashed ${state.qcPhotoCaptured ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-slate-300 text-slate-600'} font-semibold text-[11px]">
+                📷 ${state.qcPhotoCaptured ? state.qcPhotoCaptured : 'Ambil Foto Sampel Fisik QC'}
+              </button>
+
+              <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs shadow-sm">
+                Kirim Pengajuan ke Admin Pusat
+              </button>
+            </form>
+          `;
+        }
+        return;
+      }
+
+      // --- ROLE 3: MANAGER / OWNER (ZIYAAD) ---
+      if (user.Role === "MANAGER_OWNER") {
+        lockBtn.classList.add("hidden");
+        headerTitle.textContent = "Executive Command Center";
+        headerSub.textContent = user.Nama_User;
+
+        const navItems = [
+          { id: "owner_mutasi", label: "Cek Mutasi", icon: "🏦" },
+          { id: "owner_dash", label: "Dashboard 10 Cabang", icon: "📊" },
+          { id: "owner_audit", label: "Log Audit SPV", icon: "🛡️" }
+        ];
+        bottomNav.className = "bg-white border-t border-slate-200 px-2 py-1.5 grid grid-cols-3 gap-1 shrink-0";
+        bottomNav.innerHTML = navItems.map(n => `
+          <button onclick="state.activeAppTab='${n.id}'; renderAppSheet();"
+            class="flex flex-col items-center py-1 rounded-xl text-[11px] font-semibold transition ${state.activeAppTab === n.id ? 'bg-emerald-50 text-emerald-800' : 'text-slate-500 hover:text-slate-800'}">
+            <span class="text-sm leading-none mb-0.5">${n.icon}</span>
+            <span>${n.label}</span>
+          </button>
+        `).join("");
+
+        if (state.activeAppTab === "owner_mutasi") {
+          const allTodayClosings = db.closingSetoran.filter(c => c.Tanggal === TODAY_DATE).map(computeClosingRow);
+          screenBody.innerHTML = `
+            <div class="bg-emerald-900 text-white rounded-2xl p-3.5 shadow-xs space-y-1">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Gerbang Final Mutasi Bank</div>
+              <h3 class="font-bold text-sm">Konfirmasi Mutasi Masuk Rekening Pusat</h3>
+              <p class="text-[11px] text-emerald-100">Begitu dana dikonfirmasi masuk, status berubah menjadi <strong>LOCKED_SETTLED</strong> dan sah dicairkan ke mitra.</p>
+            </div>
+
+            ${allTodayClosings.map(c => `
+              <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-2.5 text-xs">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <span class="font-extrabold text-sm text-slate-900">${c.Cabang_ID}</span>
+                    <span class="text-[11px] text-slate-500 ml-1.5">${c.Metode_Setor}</span>
+                  </div>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${c.Status_Closing === 'LOCKED_SETTLED' ? 'bg-emerald-100 text-emerald-800' : c.Status_Closing === 'TERVERIFIKASI_SPV' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}">
+                    ${c.Status_Closing}
+                  </span>
+                </div>
+
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1 text-[11px]">
+                  <div class="flex justify-between"><span>Nominal Wajib Setor Tunai:</span><strong class="font-mono text-emerald-800">${formatRp(c.Nominal_Wajib_Setor_Bank)}</strong></div>
+                  <div class="flex justify-between"><span>Total Mutasi QRIS:</span><strong class="font-mono text-slate-800">${formatRp(c.Total_QRIS)}</strong></div>
+                  <div class="flex justify-between"><span>Komisi Aktual L10 (Net Petty Cash):</span><strong class="font-mono text-emerald-900">${formatRp(c.Komisi_Aktual_L10)}</strong></div>
+                </div>
+
+                ${c.Status_Closing === "TERVERIFIKASI_SPV" ? `
+                  <button onclick="ownerConfirmMutation('${c.ID_CLOSING}')" class="w-full py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs shadow-sm">
+                    🏦 [Konfirmasi Mutasi Masuk] Kunci LOCKED_SETTLED
+                  </button>
+                ` : c.Status_Closing === "LOCKED_SETTLED" ? `
+                  <div class="text-[11px] text-emerald-700 font-semibold">✓ Terkunci & Sah Payout: ${c.Log_Mutasi_Owner}</div>
+                ` : `
+                  <div class="text-[11px] text-amber-700">⏳ Menunggu validasi slip setoran oleh SPV terlebih dahulu.</div>
+                `}
+              </div>
+            `).join("")}
+          `;
+        } else if (state.activeAppTab === "owner_dash") {
+          const todayTrx = db.transaksi.filter(t => t.Tanggal === TODAY_DATE).map(computeTrxRow);
+          const totalOmsetToday = todayTrx.reduce((s, r) => s + r.Omset_Kotor, 0);
+          const totalKomisiKotor = todayTrx.reduce((s, r) => s + r.Komisi_Kotor_L10, 0);
+          const todayClosings = db.closingSetoran.filter(c => c.Tanggal === TODAY_DATE).map(computeClosingRow);
+          const totalPetty = todayClosings.reduce((s, c) => s + Number(c.Pengeluaran_Tunai_Laci || 0), 0);
+          const potongGajiList = todayClosings.filter(c => c.Selisih_Kasir < 0 && c.Penyelesaian_Minus === "POTONG_GAJI_STAF");
+
+          screenBody.innerHTML = `
+            <div class="grid grid-cols-2 gap-2.5">
+              <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs">
+                <div class="text-[10px] font-semibold text-slate-500 uppercase">Omset Kotor Hari Ini</div>
+                <div class="font-mono font-extrabold text-sm text-slate-900 mt-1">${formatRp(totalOmsetToday)}</div>
+                <div class="text-[10px] text-emerald-700 mt-0.5">${todayTrx.reduce((s, r) => s + r.TERJUAL, 0)} boks terjual</div>
+              </div>
+              <div class="bg-emerald-900 text-white p-3 rounded-2xl shadow-xs">
+                <div class="text-[10px] font-semibold text-emerald-300 uppercase">Komisi Aktual L10</div>
+                <div class="font-mono font-extrabold text-sm mt-1">${formatRp(totalKomisiKotor - totalPetty)}</div>
+                <div class="text-[10px] text-emerald-200 mt-0.5">Kotor ${formatRp(totalKomisiKotor)} - Petty ${formatRp(totalPetty)}</div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-2 text-xs">
+              <h4 class="font-bold text-slate-900">Catatan Potongan Gaji Minus (Nol Buffer)</h4>
+              ${potongGajiList.length === 0 ? `<p class="text-[11px] text-slate-500">Nihil potongan gaji minus hari ini.</p>` : potongGajiList.map(p => `
+                <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-between">
+                  <div>
+                    <span class="font-bold text-rose-900">${p.Cabang_ID}</span>
+                    <span class="block text-[10px] text-rose-700">Tanggung Renteng 3 Staf Cabang</span>
+                  </div>
+                  <span class="font-mono font-extrabold text-rose-800">${formatRp(p.Selisih_Kasir)}</span>
+                </div>
+              `).join("")}
+            </div>
+          `;
+        } else {
+          const editedRows = db.transaksi.filter(t => t.Log_Edit_SPV);
+          screenBody.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-2.5 text-xs">
+              <h3 class="font-bold text-slate-900">Immutable Log: Jejak Koreksi SPV</h3>
+              <p class="text-[11px] text-slate-500">Menampilkan perbandingan angka awal ketikan Kasir vs revisi SPV.</p>
+              ${editedRows.map(r => `
+                <div class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 space-y-1">
+                  <div class="font-bold text-slate-900">${r.ID_SKU_CABANG} (${r.Cabang_ID})</div>
+                  <div class="text-[11px] font-mono">Masuk: Kasir <strong>${r.MASUK_KASIR}</strong> → SPV <strong>${r.KOREKSI_MASUK_SPV ?? '-'}</strong></div>
+                  <div class="text-[11px] font-mono">Sisa: Kasir <strong>${r.SISA_KASIR}</strong> → SPV <strong>${r.KOREKSI_SISA_SPV ?? '-'}</strong></div>
+                  <div class="text-[10px] font-mono text-amber-900 font-semibold">${r.Log_Edit_SPV}</div>
+                </div>
+              `).join("")}
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // --- ROLE 4: ADMIN PUSAT L10 ---
+      if (user.Role === "ADMIN_PUSAT") {
+        lockBtn.classList.add("hidden");
+        headerTitle.textContent = "Admin Pusat & Finance L10";
+        headerSub.textContent = "Master Data, Payout 3-Harian & Bank";
+
+        const navItems = [
+          { id: "admin_payout", label: "Payout & Bank", icon: "💸" },
+          { id: "admin_approval", label: "Approval H+1", icon: "📝" },
+          { id: "admin_komplain", label: "Komplain", icon: "⚠️" },
+          { id: "admin_param", label: "Master & Fee", icon: "⚙️" }
+        ];
+        bottomNav.className = "bg-white border-t border-slate-200 px-1.5 py-1.5 grid grid-cols-4 gap-1 shrink-0";
+        bottomNav.innerHTML = navItems.map(n => `
+          <button onclick="state.activeAppTab='${n.id}'; renderAppSheet();"
+            class="flex flex-col items-center py-1 rounded-xl text-[10px] font-semibold transition ${state.activeAppTab === n.id ? 'bg-emerald-50 text-emerald-800' : 'text-slate-500 hover:text-slate-800'}">
+            <span class="text-sm leading-none mb-0.5">${n.icon}</span>
+            <span class="truncate max-w-full">${n.label}</span>
+          </button>
+        `).join("");
+
+        if (state.activeAppTab === "admin_payout") {
+          const recaps = computePayoutRecap();
+          screenBody.innerHTML = `
+            <div class="bg-emerald-900 text-white rounded-2xl p-3.5 shadow-xs space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Siklus Senin–Rabu</span>
+                <span class="font-mono text-[10px] bg-emerald-800 px-2 py-0.5 rounded">${CYCLE_CODE}</span>
+              </div>
+              <div class="text-xs text-emerald-100">Hanya menjumlahkan transaksi berstatus <strong>LOCKED_SETTLED</strong> lintas 10 cabang (terurut LS01..LS08).</div>
+              <button onclick="downloadBankMassCsv()" class="w-full py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-extrabold text-xs shadow-sm transition flex items-center justify-center gap-1.5">
+                <span>⬇️</span>
+                <span>Download CSV Mass Disbursement (BRI / BNI)</span>
+              </button>
+            </div>
+
+            <div class="space-y-2.5">
+              ${recaps.map(r => `
+                <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-2 text-xs">
+                  <div class="flex items-start justify-between gap-2">
+                    <div>
+                      <div class="font-bold text-slate-900"><span class="font-mono text-emerald-800">${r.ID_MITRA}</span> - ${r.Nama_Mitra}</div>
+                      <div class="text-[11px] font-mono text-slate-600">${r.Bank_Tujuan} • ${r.No_Rekening}</div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${r.Status_Transfer === 'SUDAH_DITRANSFER' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                      ${r.Status_Transfer}
+                    </span>
+                  </div>
+
+                  <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 text-[11px] space-y-1">
+                    <div class="text-slate-600">Rincian Lintas Cabang: <strong class="text-slate-800 block mt-0.5">${r.Rincian_Per_Cabang}</strong></div>
+                    ${r.Total_Potongan_Komplain > 0 ? `<div class="text-rose-700 font-semibold">Potongan Komplain: -${formatRp(r.Total_Potongan_Komplain)}</div>` : ''}
+                    <div class="flex justify-between items-center pt-1 border-t border-slate-200 font-bold text-emerald-900">
+                      <span>Total Transfer (${r.Total_Qty_Terjual} pcs):</span>
+                      <span class="font-mono text-sm">${formatRp(r.Total_Transfer_Diterima)}</span>
+                    </div>
+                  </div>
+
+                  <button onclick="openMitraCleanPayoutWa('${r.ID_MITRA}')" class="w-full py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-bold text-[11px] transition">
+                    📄 Lihat Rincian Bersih Mitra (Tanpa Angka Komisi)
+                  </button>
+                </div>
+              `).join("")}
+            </div>
+          `;
+        } else if (state.activeAppTab === "admin_approval") {
+          screenBody.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs">
+              <h3 class="font-bold text-xs text-slate-900">Checker Approval: Pengajuan SPV (Efektif H+1)</h3>
+              <p class="text-[11px] text-slate-500 mt-0.5">Persetujuan otomatis memperbarui 2_MASTER_SKU_CABANG tanpa mengubah transaksi hari ini.</p>
+            </div>
+            ${db.pengajuanSku.map(req => {
+              const avgQc = (req.Skor_QC_Kemasan * 0.3) + (req.Skor_QC_Rasa * 0.4) + (req.Skor_QC_SuhuRuang * 0.3);
+              return `
+                <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-2.5 text-xs">
+                  <div class="flex items-center justify-between">
+                    <span class="px-2 py-0.5 rounded bg-slate-100 font-mono text-[10px] font-bold">${req.Jenis_Pengajuan}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${req.Status_Approval === 'DISETUJUI' ? 'bg-emerald-100 text-emerald-800' : req.Status_Approval === 'DITOLAK' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}">
+                      ${req.Status_Approval}
+                    </span>
+                  </div>
+                  <div>
+                    <div class="font-bold text-sm text-slate-900">${req.Nama_Produk_Usulan}</div>
+                    <div class="text-[11px] text-slate-600">${req.Cabang_ID} • Mitra: ${req.ID_MITRA} - ${getMitraName(req.ID_MITRA)}</div>
+                    <div class="text-[11px] font-mono text-emerald-800 font-bold mt-0.5">Harga Usulan: ${formatRp(req.Harga_Usulan)} • Berlaku: ${req.Tanggal_Efektif}</div>
+                  </div>
+                  <div class="bg-slate-50 p-2 rounded-xl border border-slate-200 flex items-center justify-between text-[11px]">
+                    <span>Skor 3 Pilar QC:</span>
+                    <strong class="font-mono ${avgQc >= 75 ? 'text-emerald-700' : 'text-rose-700'}">${avgQc.toFixed(1)} / 100 ${avgQc >= 75 ? '(LOLOS)' : '(GAGAL < 75)'}</strong>
+                  </div>
+                  ${req.Status_Approval === "MENUNGGU_PUSAT" ? `
+                    <div class="grid grid-cols-2 gap-2">
+                      <button onclick="processSkuProposal('${req.ID_PENGAJUAN}', 'DISETUJUI')" class="py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs">✅ Setujui (H+1)</button>
+                      <button onclick="processSkuProposal('${req.ID_PENGAJUAN}', 'DITOLAK')" class="py-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs">✕ Tolak</button>
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join("")}
+          `;
+        } else if (state.activeAppTab === "admin_komplain") {
+          screenBody.innerHTML = `
+            <form onsubmit="addCustomerComplaint(event)" class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-2.5 text-xs">
+              <h3 class="font-bold text-sm text-slate-900">Catat Potongan Komplain Konsumen</h3>
+              <p class="text-[11px] text-slate-500">Nominal klaim refund otomatis memotong hak transfer mitra pada siklus berjalan.</p>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Cabang</label>
+                  <select id="kmpCabang" class="w-full px-2.5 py-2 rounded-xl border border-slate-300 bg-slate-50 font-semibold">
+                    ${["CB-01","CB-02","CB-03","CB-04","CB-05","CB-06","CB-07","CB-08","CB-09","CB-10"].map(c => `<option value="${c}">${c}</option>`).join("")}
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Mitra Produsen</label>
+                  <select id="kmpMitra" class="w-full px-2.5 py-2 rounded-xl border border-slate-300 bg-slate-50 font-semibold">
+                    ${[...db.mitra].sort((a, b) => compareNatural(a.ID_MITRA, b.ID_MITRA)).map(m => `<option value="${m.ID_MITRA}">${m.ID_MITRA} - ${m.Nama_Mitra}</option>`).join("")}
+                  </select>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Qty Komplain (Boks)</label>
+                  <input id="kmpQty" type="number" min="1" value="2" class="w-full font-mono font-bold px-3 py-2 rounded-xl border border-slate-300" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Tier Harga Produk</label>
+                  <select id="kmpHargaRef" class="w-full font-mono font-bold px-2.5 py-2 rounded-xl border border-slate-300 bg-slate-50">
+                    <option value="10000">Rp 10.000</option>
+                    <option value="15000">Rp 15.000</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Alasan Komplain</label>
+                <input id="kmpAlasan" type="text" placeholder="Contoh: Boks penyok / rasa asam sebelum jam 14.00" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+              </div>
+              <button type="submit" class="w-full py-2.5 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs shadow-sm">
+                Simpan Potongan Komplain Mitra
+              </button>
+            </form>
+          `;
+        } else {
+          const currentKomisi = db.users[0].Komisi_Aktif_Global;
+          screenBody.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-3 text-xs">
+              <div>
+                <span class="text-[10px] font-bold uppercase text-emerald-700">0_MASTER_USER_PARAM</span>
+                <h3 class="font-bold text-sm text-slate-900">Pengaturan Parameter Komisi Global</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5">Perubahan komisi hanya berlaku untuk baris transaksi baru (Static Snapshot melindungi histori lama).</p>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="updateGlobalCommission(1500)" class="py-2.5 rounded-xl font-mono font-bold border transition ${currentKomisi === 1500 ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
+                  Rp 1.500 / pcs
+                </button>
+                <button onclick="updateGlobalCommission(2000)" class="py-2.5 rounded-xl font-mono font-bold border transition ${currentKomisi === 2000 ? 'bg-emerald-800 text-white border-emerald-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
+                  Rp 2.000 / pcs
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-2 text-xs">
+              <h4 class="font-bold text-slate-900">Daftar Mitra Terurut (${db.mitra.length} UMKM: LS01..LS08)</h4>
+              ${[...db.mitra].sort((a, b) => compareNatural(a.ID_MITRA, b.ID_MITRA)).map(m => `
+                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                  <div>
+                    <div class="font-bold text-slate-900"><span class="font-mono text-emerald-800">${m.ID_MITRA}</span> - ${m.Nama_Mitra}</div>
+                    <div class="text-[10px] font-mono text-slate-500">${m.Bank_Tujuan} ${m.No_Rekening} • Fee Bank: ${formatRp(m.Biaya_Admin_Bank)}</div>
+                  </div>
+                  <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold">${m.Status_Mitra}</span>
+                </div>
+              `).join("")}
+            </div>
+          `;
+        }
+      }
+    }
+
+    // =========================================================================
+    // 7. GOOGLE SHEETS 11-TAB RENDER ENGINE (LIVE DATA + SCHEMA/FORMULAS)
+    // =========================================================================
+    const SHEET_DEFINITIONS = [
+      {
+        id: "0_MASTER_USER_PARAM",
+        label: "0_MASTER_USER_PARAM",
+        formula: '=LOOKUP(USEREMAIL(), "0_MASTER_USER_PARAM", "Email_User", "Role") | Komisi_Aktif_Global = 1500/2000',
+        schema: [
+          { col: "Email_User", type: "Email (Key)", rule: "14 akun tetap: 10 Kasir Perangkat, 2 SPV, 1 Manager/Owner, 1 Admin Pusat." },
+          { col: "Role", type: "Enum", rule: "KASIR | SPV | MANAGER_OWNER | ADMIN_PUSAT (Pengendali Security Filter)." },
+          { col: "Cabang_Akses", type: "Text", rule: "CB-01 untuk Kasir 1; CB-01..CB-05 untuk SPV 1; ALL untuk Pusat." },
+          { col: "PIN_Cabang", type: "Text (6 Digit)", rule: "PIN unik cabang yang wajib dimasukkan kasir saat membuka form input." },
+          { col: "Komisi_Aktif_Global", type: "Price", rule: "Parameter komisi flat (Rp 1.500 -> opsi Rp 2.000) disalin statis saat transaksi dibuat." }
+        ],
+        getData: () => db.users
+      },
+      {
+        id: "1_MASTER_MITRA",
+        label: "1_MASTER_MITRA",
+        formula: '=IF(IN([Bank_Tujuan], {"BRI","BNI"}), 0, 2500)  // Urut Kode Mitra LS01 s.d. Akhir',
+        schema: [
+          { col: "ID_MITRA", type: "Text (Key)", rule: "Kode urut tetap LS01, LS02, ... LSxx sebagai kunci pengurutan dropdown & dashboard." },
+          { col: "Bank_Tujuan", type: "Enum", rule: "Prioritas BRI / BNI untuk Mass Disbursement tanpa biaya admin." },
+          { col: "Biaya_Admin_Bank", type: "Price (App Formula)", rule: "Otomatis Rp 0 untuk BRI/BNI, Rp 2.500 untuk bank lain." }
+        ],
+        getData: () => [...db.mitra].sort((a, b) => compareNatural(a.ID_MITRA, b.ID_MITRA))
+      },
+      {
+        id: "2_MASTER_SKU_CABANG",
+        label: "2_MASTER_SKU_CABANG",
+        formula: '=[Cabang_ID] & "-" & [ID_MITRA] & "-" & [Kode_Urut]  // Solusi 1 Mitra Multi-Cabang Beda Harga',
+        schema: [
+          { col: "ID_SKU_CABANG", type: "Text (Key)", rule: "Kode SKU spesifik cabang terurut (contoh: CB01-LS01-01, CB02-LS05-01)." },
+          { col: "ID_MITRA", type: "Ref -> 1_MASTER_MITRA", rule: "Mengikat penjualan di berbagai cabang kembali ke 1 rekening induk mitra." },
+          { col: "Harga_Jual", type: "Enum (10000 | 15000)", rule: "Terkunci pada 2 tier harga angka murni (anti salah ketik huruf O)." }
+        ],
+        getData: () => [...db.skuCabang].sort((a, b) => {
+          const cbCmp = compareNatural(a.Cabang_ID, b.Cabang_ID);
+          return cbCmp !== 0 ? cbCmp : sortTrxByMitraAndSku(a, b);
+        })
+      },
+      {
+        id: "3_BUKTI_INBOUND_SUBUH",
+        label: "3_BUKTI_INBOUND_SUBUH",
+        formula: '=TEXT(TODAY(),"YYYYMMDD") & "-" & [Cabang_ID] & "-" & [ID_MITRA]  // Foto Bukti Penerimaan = OPSIONAL',
+        schema: [
+          { col: "ID_INBOUND", type: "Text (Key)", rule: "Log kedatangan per mitra per cabang saat subuh." },
+          { col: "Foto_Bukti_Penerimaan", type: "Image (Optional)", rule: "Opsional: kasir dapat melampirkan foto bukti penerimaan barang atau langsung simpan tanpa foto." }
+        ],
+        getData: () => db.inboundSubuh
+      },
+      {
+        id: "4_TRANSAKSI_HARIAN",
+        label: "4_TRANSAKSI_HARIAN",
+        formula: '=ARRAYFORMULA(IF(ISBLANK(KOREKSI_MASUK_SPV), MASUK_KASIR, KOREKSI_MASUK_SPV) - IF(ISBLANK(KOREKSI_SISA_SPV), SISA_KASIR, KOREKSI_SISA_SPV))',
+        schema: [
+          { col: "Harga_Snapshot & Komisi_Snapshot", type: "Price (Static)", rule: "Initial Value disalin saat dibuat (Editable_If = FALSE) agar kebal perubahan harga H+1." },
+          { col: "MASUK_KASIR vs KOREKSI_MASUK_SPV", type: "Number", rule: "Diinput kasir lewat dropdown per mitra (LS01..akhir); koreksi SPV dicatat terpisah." },
+          { col: "SISA_KASIR vs KOREKSI_SISA_SPV", type: "Number", rule: "Diinput kasir lewat dropdown per mitra (LS01..akhir) pukul 11.00–13.30 WIB." },
+          { col: "Log_Edit_SPV", type: "Text (Audit)", rule: "Merekam otomatis email SPV & jam koreksi." }
+        ],
+        getData: () => [...db.transaksi].sort((a, b) => {
+          const tCmp = compareNatural(b.Tanggal, a.Tanggal);
+          if (tCmp !== 0) return tCmp;
+          const cbCmp = compareNatural(a.Cabang_ID, b.Cabang_ID);
+          return cbCmp !== 0 ? cbCmp : sortTrxByMitraAndSku(a, b);
+        }).map(computeTrxRow)
+      },
+      {
+        id: "5_CLOSING_SETORAN",
+        label: "5_CLOSING_SETORAN",
+        formula: '=([Cash_Fisik_Laci] + [Total_QRIS] + [Pengeluaran_Tunai_Laci]) - [Omset_Kotor_Sistem]  // Blind Closing',
+        schema: [
+          { col: "Omset_Kotor_Sistem & Selisih_Kasir", type: "Price (Hidden in Form)", rule: "Disembunyikan saat kasir input (Blind Closing); muncul setelah tombol Simpan ditekan." },
+          { col: "Penyelesaian_Minus", type: "Enum (Nol Buffer)", rule: "Wajib pilih NOMBOK_TUNAI_HARI_INI atau POTONG_GAJI_STAF jika Selisih < 0." },
+          { col: "Komisi_Aktual_L10", type: "Price", rule: "Komisi_Kotor_Cabang - Pengeluaran_Tunai_Laci (belanja harian memotong komisi L10)." },
+          { col: "Status_Closing", type: "Enum", rule: "MENUNGGU_CEK_SPV -> TERVERIFIKASI_SPV -> LOCKED_SETTLED (Owner)." }
+        ],
+        getData: () => db.closingSetoran.map(computeClosingRow)
+      },
+      {
+        id: "6_LOG_KOMPLAIN_MITRA",
+        label: "6_LOG_KOMPLAIN_MITRA",
+        formula: '=[Qty_Komplain] * ([Harga_Jual] - [Komisi_Aktif_Global])  // Auto-Debit Payout Mitra',
+        schema: [
+          { col: "Nominal_Potongan_Mitra", type: "Price", rule: "Otomatis mengurangi hak transfer mitra pada siklus 3-harian berjalan." }
+        ],
+        getData: () => db.komplain
+      },
+      {
+        id: "7_REKAP_PAYOUT_3HARIAN",
+        label: "7_REKAP_PAYOUT_3HARIAN",
+        formula: '=SUMIFS(4_TRANSAKSI_HARIAN[Omset_Bersih_Mitra], ID_MITRA, ..., Status_Closing, "LOCKED_SETTLED") - Total_Potongan_Komplain',
+        schema: [
+          { col: "Total_Bersih_10_Cabang", type: "Price", rule: "Gabungan hak bersih mitra dari seluruh cabang yang sudah LOCKED_SETTLED." },
+          { col: "Rincian_Per_Cabang", type: "LongText", rule: "Pemecahan nominal bersih per cabang (contoh: CB-01: Rp 425.000 | CB-02: Rp 540.000)." }
+        ],
+        getData: () => computePayoutRecap()
+      },
+      {
+        id: "8_EXPORT_BANK_MASS",
+        label: "8_EXPORT_BANK_MASS",
+        formula: '=QUERY(\'7_REKAP_PAYOUT_3HARIAN\'!A2:N, "SELECT Bank_Tujuan, No_Rekening, Nama_Pemilik_Rek, Total_Transfer_Diterima WHERE Total_Transfer_Diterima > 0", 0)',
+        schema: [
+          { col: "Format CSV BRI CMS / BNI Direct", type: "Export Query", rule: "Siap unduh CSV untuk Mass Disbursement tanpa biaya admin antar rekening BRI/BNI." }
+        ],
+        getData: () => computePayoutRecap()
+          .filter(r => r.Total_Transfer_Diterima > 0)
+          .map((r, i) => ({
+            NO: i + 1,
+            BANK_TUJUAN: r.Bank_Tujuan,
+            NO_REKENING: r.No_Rekening,
+            NAMA_PEMILIK_REK: r.Nama_Pemilik_Rek,
+            NOMINAL_TRANSFER: r.Total_Transfer_Diterima,
+            BERITA_TRANSFER: `PAYOUT L10 ${r.Kode_Siklus}`,
+            STATUS: r.Status_Transfer
+          }))
+      },
+      {
+        id: "9_PENGAJUAN_SKU_HARGA",
+        label: "9_PENGAJUAN_SKU_HARGA",
+        formula: '=IF(AND([Jenis_Pengajuan]="TAMBAH_SKU_BARU", [Nilai_Akhir_QC]<75), [Status_Approval]<>"DISETUJUI", TRUE)',
+        schema: [
+          { col: "Nilai_Akhir_QC", type: "Decimal", rule: "(Kemasan*0.3) + (Rasa*0.4) + (SuhuRuang*0.3). Wajib >= 75 untuk SKU baru." },
+          { col: "Tanggal_Efektif", type: "Date", rule: "Valid_If >= TODAY() + 1 (Mencegah manipulasi harga pada hari transaksi berjalan)." }
+        ],
+        getData: () => db.pengajuanSku.map(r => ({
+          ...r,
+          Nilai_Akhir_QC: ((r.Skor_QC_Kemasan * 0.3) + (r.Skor_QC_Rasa * 0.4) + (r.Skor_QC_SuhuRuang * 0.3)).toFixed(1)
+        }))
+      },
+      {
+        id: "10_VIEW_LAPORAN_SISA_CABANG",
+        label: "10_VIEW_LAPORAN_SISA",
+        formula: '=SORT(FILTER(4_TRANSAKSI_HARIAN, Tanggal=TODAY()), Kode_Mitra, TRUE, Kode_SKU, TRUE)  // View-Only Link Grup Mitra',
+        schema: [
+          { col: "Kode_Mitra & Nama_Mitra", type: "Sorted Ascending (LS01..Akhir)", rule: "Terurut ketat dari kode mitra pertama (LS01) hingga terakhir agar mitra cepat menemukan produknya." },
+          { col: "Status", type: "Formula", rule: "ADA SISA RETUR (Sisa > 0) | HABIS TERJUAL (Masuk > 0 & Sisa = 0) | TIDAK KIRIM (Masuk = 0)." }
+        ],
+        getData: () => {
+          const user = getCurrentUser();
+          const filterCb = user.Role === "KASIR" ? user.Cabang_Akses : null;
+          return computeSpreadsheetLaporanSisa(filterCb);
+        }
+      }
+    ];
+
+    function renderGoogleSheets() {
+      const tabStrip = document.getElementById("gsheetTabStrip");
+      const wrapper = document.getElementById("gsheetTableWrapper");
+      const formulaBar = document.getElementById("gsheetFormulaBar");
+      if (!tabStrip || !wrapper || !formulaBar) return;
+
+      tabStrip.innerHTML = SHEET_DEFINITIONS.map(def => {
+        const isActive = def.id === state.activeSheetTab;
+        return `
+          <button onclick="state.activeSheetTab='${def.id}'; renderGoogleSheets();"
+            class="px-2.5 py-1.5 rounded-t-lg text-[11px] font-mono font-semibold whitespace-nowrap border transition ${
+              isActive
+                ? 'bg-white text-emerald-800 border-slate-300 border-b-white shadow-xs'
+                : 'bg-slate-200/60 text-slate-600 border-transparent hover:bg-slate-200'
+            }">
+            ${def.label}
+          </button>
+        `;
+      }).join("");
+
+      const activeDef = SHEET_DEFINITIONS.find(d => d.id === state.activeSheetTab) || SHEET_DEFINITIONS[4];
+      formulaBar.textContent = activeDef.formula;
+
+      if (state.sheetSubMode === "schema") {
+        wrapper.innerHTML = `
+          <div class="p-4 space-y-3">
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+              <div class="text-xs font-bold text-emerald-900">Dokumentasi Struktur Kolom & Ekspresi AppSheet: ${activeDef.id}</div>
+              <p class="text-[11px] text-emerald-800 mt-0.5">Panduan teknis langsung untuk developer saat menyusun tabel Google Sheets dan kolom AppSheet.</p>
+            </div>
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-100 border-b border-slate-300 text-slate-700 font-mono text-[11px]">
+                  <th class="p-2.5 border-r border-slate-200">Nama Kolom</th>
+                  <th class="p-2.5 border-r border-slate-200">Tipe & Properti AppSheet</th>
+                  <th class="p-2.5">Aturan Bisnis & Validasi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                ${activeDef.schema.map(s => `
+                  <tr class="hover:bg-slate-50">
+                    <td class="p-2.5 font-mono font-bold text-emerald-800 border-r border-slate-200">${s.col}</td>
+                    <td class="p-2.5 font-mono text-[11px] text-slate-700 border-r border-slate-200">${s.type}</td>
+                    <td class="p-2.5 text-slate-600">${s.rule}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+        return;
+      }
+
+      const rows = activeDef.getData();
+      if (!rows || rows.length === 0) {
+        wrapper.innerHTML = `<div class="p-8 text-center text-xs text-slate-400">Belum ada baris data pada tab ${activeDef.id}.</div>`;
+        return;
+      }
+
+      const headers = Object.keys(rows[0]);
+      const moneyCols = new Set([
+        "Komisi_Aktif_Global", "Biaya_Admin_Bank", "Harga_Jual", "Harga_Snapshot", "Komisi_Snapshot",
+        "Omset_Kotor", "Komisi_Kotor_L10", "Omset_Bersih_Mitra", "Pengeluaran_Tunai_Laci", "Cash_Fisik_Laci",
+        "Total_QRIS", "Omset_Kotor_Sistem", "Total_Pertanggungjawaban", "Selisih_Kasir", "Nominal_Wajib_Setor_Bank",
+        "Komisi_Kotor_Cabang", "Komisi_Aktual_L10", "Nominal_Potongan_Mitra", "Total_Bersih_10_Cabang",
+        "Total_Potongan_Komplain", "Total_Transfer_Diterima", "NOMINAL_TRANSFER", "Harga_Usulan"
+      ]);
+
+      wrapper.innerHTML = `
+        <table class="w-full text-left border-collapse text-[11px] font-mono">
+          <thead class="sticky top-0 z-10">
+            <tr class="bg-slate-100 border-b border-slate-300 text-slate-700">
+              <th class="px-2 py-2 border-r border-slate-300 text-center text-slate-400 w-9">#</th>
+              ${headers.map(h => `
+                <th class="px-2.5 py-2 border-r border-slate-300 font-bold whitespace-nowrap">${h}</th>
+              `).join("")}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            ${rows.map((row, idx) => `
+              <tr class="hover:bg-emerald-50/40 transition">
+                <td class="px-2 py-1.5 border-r border-slate-200 text-center text-slate-400 bg-slate-50">${idx + 2}</td>
+                ${headers.map(h => {
+                  let val = row[h];
+                  let cellClass = "px-2.5 py-1.5 border-r border-slate-200 whitespace-nowrap ";
+                  if (val === null || val === undefined || val === "") {
+                    val = "-";
+                    cellClass += "text-slate-300";
+                  } else if (moneyCols.has(h)) {
+                    const num = Number(val);
+                    cellClass += "text-right font-semibold ";
+                    if (h === "Selisih_Kasir" && num < 0) cellClass += "text-rose-700 bg-rose-50";
+                    else if (h === "Selisih_Kasir" && num === 0) cellClass += "text-emerald-700 bg-emerald-50";
+                    else cellClass += "text-slate-800";
+                    val = formatRp(num);
+                  } else if (h.includes("Status")) {
+                    const s = String(val);
+                    if (s.includes("LOCKED") || s.includes("DISETUJUI") || s.includes("AKTIF") || s.includes("SUDAH") || s.includes("HABIS")) {
+                      cellClass += "text-emerald-800 font-bold bg-emerald-50/70";
+                    } else if (s.includes("MENUNGGU") || s.includes("SIAP") || s.includes("TERVERIFIKASI") || s.includes("SISA")) {
+                      cellClass += "text-amber-800 font-bold bg-amber-50/70";
+                    } else if (s.includes("TIDAK")) {
+                      cellClass += "text-slate-400";
+                    } else {
+                      cellClass += "text-rose-700 font-bold";
+                    }
+                  } else if (h === "Log_Edit_SPV" && val !== "-") {
+                    cellClass += "text-amber-800 bg-amber-50 font-semibold";
+                  } else {
+                    cellClass += "text-slate-700";
+                  }
+                  return `<td class="${cellClass}">${val}</td>`;
+                }).join("")}
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function downloadActiveSheetCSV() {
+      const activeDef = SHEET_DEFINITIONS.find(d => d.id === state.activeSheetTab) || SHEET_DEFINITIONS[4];
+      const rows = activeDef.getData();
+      if (!rows || rows.length === 0) {
+        showToast("Tidak ada data untuk diunduh pada tab ini.", "warning");
+        return;
+      }
+      const headers = Object.keys(rows[0]);
+      const lines = [headers.join(",")];
+      rows.forEach(r => {
+        lines.push(headers.map(h => `"${String(r[h] ?? "").replaceAll('"', '""')}"`).join(","));
+      });
+      triggerCsvDownload(lines.join("\n"), `${activeDef.id}_L10.csv`);
+      showToast(`Tab ${activeDef.id} berhasil diunduh sebagai CSV.`);
+    }
+
+    // =========================================================================
+    // 8. MASTER RENDER & WINDOW ONLOAD INITIALIZATION
+    // =========================================================================
+    function renderAll() {
+      renderAppSheet();
+      renderGoogleSheets();
+    }
+
+    window.onload = function () {
+      setSimTime("06:00");
+      setWorkspaceMode("split");
+      renderAll();
+    };
+  </script>
+</body>
+</html>

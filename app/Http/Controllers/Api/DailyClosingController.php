@@ -27,7 +27,7 @@ class DailyClosingController
             ->first(['id']);
 
         abort_unless($record !== null, 409, 'Closing tidak ditemukan atau sudah dikirim.');
-        $proofPath = $request->file('proof')->store('closing-expenses', 'public');
+        $proofPath = $request->file('proof')->store('closing-expenses', 'local');
         $expenseId = (int) DB::table('closing_expenses')->insertGetId([
             'daily_closing_id' => $record->id,
             'category' => $validated['category'],
@@ -44,7 +44,7 @@ class DailyClosingController
             'message' => 'Pengeluaran operasional sah tersimpan.',
             'id' => $expenseId,
             'amount' => (int) $validated['amount'],
-            'proof_url' => Storage::disk('public')->url($proofPath),
+            'proof_url' => null,
         ], 201);
     }
 
@@ -68,7 +68,7 @@ class DailyClosingController
                 'amount' => (int) $expense->amount,
                 'description' => $expense->description,
                 'is_valid' => (bool) $expense->is_valid,
-                'proof_url' => $expense->proof_path ? Storage::disk('public')->url($expense->proof_path) : null,
+                'proof_url' => null,
             ]);
         $attachments = DB::table('closing_attachments')
             ->where('daily_closing_id', $record->id)
@@ -77,7 +77,7 @@ class DailyClosingController
                 'id' => (int) $attachment->id,
                 'type' => $attachment->type,
                 'uploaded_at' => $attachment->uploaded_at,
-                'file_url' => Storage::disk('public')->url($attachment->file_path),
+                'file_url' => null,
             ]);
 
         return response()->json([
@@ -110,9 +110,9 @@ class DailyClosingController
             ->first(['closing_attachments.file_path']);
 
         abort_unless($record !== null, 404, 'Bukti tidak ditemukan.');
-        abort_unless(Storage::disk('public')->exists($record->file_path), 404, 'File bukti tidak ditemukan.');
+        abort_unless(Storage::disk('local')->exists($record->file_path), 404, 'File bukti tidak ditemukan.');
 
-        return Storage::disk('public')->download($record->file_path);
+        return Storage::disk('local')->download($record->file_path);
     }
 
     public function submit(Request $request, int $closing): JsonResponse
@@ -154,7 +154,7 @@ class DailyClosingController
             ->first(['id']);
 
         abort_unless($record !== null, 409, 'Closing tidak ditemukan atau sudah dikirim.');
-        $path = $request->file('attachment')->store('closing-attachments', 'public');
+        $path = $request->file('attachment')->store('closing-attachments', 'local');
         $attachmentId = (int) DB::table('closing_attachments')->insertGetId([
             'daily_closing_id' => $record->id,
             'type' => $validated['type'],
@@ -169,7 +169,7 @@ class DailyClosingController
             'message' => 'Lampiran closing tersimpan.',
             'id' => $attachmentId,
             'type' => $validated['type'],
-            'file_url' => Storage::disk('public')->url($path),
+            'file_url' => null,
         ], 201);
     }
 

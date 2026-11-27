@@ -1,0 +1,717 @@
+SYSTEM REQUIREMENT SPECIFICATION (SRS) & TECHNICAL BLUEPRINT
+SISTEM OPERASIONAL & KEUANGAN MVP: LAPAK SEPULUH (L10) — 10 CABANG
+Target Platform: Google Sheets (Relational Backend) + AppSheet (Frontend Mobile/Desktop App)
+
+CONTOH APPSHEET: https://share.gemini.google/Z2rtpzG5du49
+
+Kapasitas Operasional: 10 Cabang Aktif (CB-01 s.d. CB-10), 100+ Mitra UMKM, 14 Akun Tetap
+
+1. ARSITEKTUR SISTEM, HAK AKSES & ALUR STATUS (STATE MACHINE)
+1.1. Matriks Peran Pengguna & Lisensi Perangkat (14 Akun Tetap)
+Sistem menggunakan model lisensi berbasis perangkat/jabatan tetap agar efisien dan kebal terhadap pergantian staf lapangan:
+
+Role Sistem
+Jumlah Akun
+Cakupan Data (Security Filter)
+Hak Akses & Wewenang Utama
+KASIR
+10 Akun (1 HP/Cabang)
+Hanya 1 cabang sesuai email login + validasi PIN Cabang.
+Foto logbook TTD mitra subuh, input MASUK_KASIR (05.00–07.00), input SISA_KASIR (11.00–13.30), kirim laporan WA 11.30, input Blind Closing, pengeluaran laci, dan foto slip setor.
+SPV
+2 Akun (1 SPV = 5 Cabang)
+SPV_1: CB-01 s.d. CB-05
+
+
+SPV_2: CB-06 s.d. CB-10
+
+Koreksi salah ketik kasir (KOREKSI_MASUK_SPV & KOREKSI_SISA_SPV) sebelum pukul 13.30 WIB, validasi bukti setor & nota pengeluaran cabang, serta mengajukan SKU baru / perubahan harga (H+1).
+MANAGER_OWNER
+1 Akun (Pusat)
+Seluruh 10 Cabang (CB-01 s.d. CB-10).
+Verifikasi mutasi dana masuk di rekening pusat (Cek Mutasi Masuk), mengunci status transaksi menjadi LOCKED_SETTLED, serta pantau dashboard laba & selisih kas.
+ADMIN_PUSAT
+1 Akun (Pusat)
+Seluruh 10 Cabang + Tabel Master & Parameter.
+Kelola Master Mitra, Master SKU, ubah parameter komisi aktif (Rp 1.500 ke Rp 2.000), approval final SKU/harga H+1, input log komplain, rekap payout 3-harian, dan ekspor file Mass Disbursement BRI/BNI.
+
+1.2. Siklus Status Harian (End-to-End State Machine)
+Setiap hari operasional cabang berjalan melewati 5 status terkunci secara berurutan:
+
+
+
+[1. OPEN_INBOUND] (05.00 - 07.00 WIB)
+   └─ Kasir foto logbook TTD mitra + input MASUK_KASIR. Lewat 07.00 WIB, MASUK_KASIR terkunci.
+        │
+        ▼
+[2. OPEN_CLOSING] (11.00 - 13.30 WIB)
+   └─ Pukul 11.00 WIB kolom SISA_KASIR terbuka. Pukul 11.30 WIB share laporan WA grup cabang.
+   └─ SPV dapat mengisi kolom koreksi sebelum 13.30 WIB & sebelum bukti setor diunggah.
+        │
+        ▼
+[3. MENUNGGU_CEK_SPV] (Maksimal 13.30 WIB)
+   └─ Kasir mengisi Blind Closing (Pengeluaran Laci + Cash Fisik + QRIS + Foto Slip Setor).
+   └─ Seluruh input kasir & koreksi SPV terkunci permanen.
+        │
+        ▼
+[4. TERVERIFIKASI_SPV] (13.30 - 14.30 WIB)
+   └─ SPV mencocokkan fisik slip setor, penyelesaian minus (nombok/potong gaji), & nota belanja.
+        │
+        ▼
+[5. LOCKED_SETTLED] (14.30 - 15.00 WIB)
+   └─ Manager/Owner mengonfirmasi dana masuk pada mutasi rekening pusat.
+   └─ Transaksi sah ditarik ke mesin Rekap Payout 3-Harian (Senin–Rabu & Kamis–Sabtu).
+
+2. SKEMA DATABASE GOOGLE SHEETS (10 TAB RELASIONAL)
+Developer wajib membuat 1 file Google Sheets Induk dengan 10 tab berikut. Seluruh kolom berlabel Formula Sheet diisi menggunakan ARRAYFORMULA di baris ke-2 header agar otomatis berjalan setiap kali AppSheet menambah baris baru, sedangkan kolom berlabel App Formula / Initial Value diatur di sisi AppSheet.
+
+Tab 0: 0_MASTER_USER_PARAM
+Menyimpan kredensial pengguna, PIN keamanan cabang, dan parameter global bisnis.
+
+Nama Kolom
+Tipe AppSheet
+Properti / Rumus
+Keterangan & Aturan Bisnis
+Email_User
+Email
+Key, Required
+Email Google yang terdaftar di AppSheet (14 akun tetap).
+Nama_User
+Text
+Label, Required
+Nama pengguna atau nama perangkat cabang.
+Role
+Enum
+KASIR, SPV, MANAGER_OWNER, ADMIN_PUSAT
+Penentu hak akses menu dan Security Filter.
+Cabang_Akses
+Text
+Contoh: CB-01 atau CB-01,CB-02,CB-03,CB-04,CB-05
+Daftar kode cabang yang boleh diakses akun tersebut.
+PIN_Cabang
+Text
+Wajib 6 digit angka (contoh: 102938)
+PIN rahasia cabang yang wajib diketik kasir saat membuka form input.
+Komisi_Aktif_Global
+Price
+Diisi pada baris parameter utama: 1500
+Admin Pusat dapat mengubah ke 2000 kapan saja tanpa merusak data lama.
+Tab 1: 1_MASTER_MITRA
+Tabel induk tunggal untuk setiap UMKM. Menjamin 1 mitra yang menyuplai ke banyak cabang tetap memiliki 1 rekening pencairan gabungan.
+
+
+
+
+
+Nama Kolom
+Tipe AppSheet
+Properti / Rumus
+Keterangan & Aturan Bisnis
+ID_MITRA
+Text
+Key, Initial Value: "MTR-" & RIGHT("000" & (MAX(1_MASTER_MITRA[Nomor_Urut]) + 1), 3)
+Kode unik permanen mitra (contoh: MTR-001 untuk Budi).
+Nama_Mitra
+Text
+Label, Required
+Nama lengkap pelaku UMKM.
+No_WA_Mitra
+Phone
+Format 628xxxxxxxxxx
+Nomor WhatsApp tujuan pengiriman rincian payout bersih.
+Bank_Tujuan
+Enum
+BRI, BNI, BCA, MANDIRI, DANA
+Prioritas wajib BRI atau BNI untuk Mass Disbursement bebas biaya admin.
+No_Rekening
+Text
+Required, Validasi angka murni tanpa spasi/strip
+Nomor rekening pencairan mitra.
+Nama_Pemilik_Rek
+Text
+Required (HURUF KAPITAL)
+Nama sesuai buku tabungan untuk validasi bulk transfer bank.
+Biaya_Admin_Bank
+Price
+App Formula: IF(IN([Bank_Tujuan], {"BRI","BNI"}), 0, 2500)
+Otomatis Rp 0 untuk BRI/BNI, dan Rp 2.500 untuk bank lain.
+Status_Mitra
+Enum
+AKTIF, NONAKTIF
+Mitra NONAKTIF otomatis tersembunyi dari pilihan inbound subuh.
+
+Tab 2: 2_MASTER_SKU_CABANG
+Tabel anak (Child Table) untuk memetakan produk mitra per cabang. Solusi Kasus Multi-Cabang Budi: Budi (MTR-001) dapat memiliki CB01-MTR001-01 (Nasi Uduk Rp 10.000) di Cabang 1 dan CB02-MTR001-01 (Risoles Mayo Rp 15.000) di Cabang 2.
+
+Nama Kolom
+Tipe AppSheet
+Properti / Rumus
+Keterangan & Aturan Bisnis
+ID_SKU_CABANG
+Text
+Key, Format: [Cabang_ID] & "-" & [ID_MITRA] & "-" & [Kode_Urut]
+Contoh: CB01-MTR001-01.
+Cabang_ID
+Enum
+CB-01 s.d. CB-10, Required
+Titik cabang tempat SKU tersebut dijual.
+ID_MITRA
+Ref
+Source: 1_MASTER_MITRA, Required
+Mengikat SKU cabang ini ke rekening induk mitra (MTR-001).
+Nama_Produk
+Text
+Label, Required
+Nama menu spesifik di cabang tersebut.
+Harga_Jual
+Enum
+Pilihan wajib: 10000 atau 15000
+Terkunci hanya 2 tier harga (angka murni tanpa huruf O).
+Status_SKU
+Enum
+AKTIF, NONAKTIF
+Diubah otomatis oleh Bot jika ada pengajuan SKU baru yang disetujui.
+Tab 3: 3_BUKTI_INBOUND_SUBUH
+Mencatat kehadiran pengiriman mitra setiap subuh beserta foto logbook fisik bertanda tangan mitra.
+
+Nama Kolom
+Tipe AppSheet
+Properti / Rumus
+Keterangan & Aturan Bisnis
+ID_INBOUND
+Text
+Key, Initial Value: TEXT(TODAY(), "YYYYMMDD") & "-" & [Cabang_ID] & "-" & [ID_MITRA]
+Mencegah duplikasi dokumen inbound mitra yang sama pada hari & cabang yang sama.
+Tanggal
+Date
+Initial Value: TODAY(), Editable_If = FALSE
+Terkunci tanggal hari ini.
+Cabang_ID
+Text
+Initial Value: LOOKUP(USEREMAIL(), "0_MASTER_USER_PARAM", "Email_User", "Cabang_Akses")
+Otomatis terisi kode cabang kasir yang login.
+Validasi_PIN
+Text
+Valid_If: [Validasi_PIN] = LOOKUP([Cabang_ID], "0_MASTER_USER_PARAM", "Cabang_Akses", "PIN_Cabang")
+Kasir wajib mengetik PIN cabang sebelum bisa menyimpan form.
+ID_MITRA
+Ref
+Source: 1_MASTER_MITRA (Filtered hanya mitra yang punya SKU AKTIF di [Cabang_ID])
+Memilih mitra yang datang subuh itu.
+Foto_Logbook_TTD
+Image
+Required, Allow image input from gallery = OFF
+Wajib foto langsung lembar logbook fisik yang sudah ditandatangani mitra.
+Waktu_Input_Subuh
+DateTime
+Initial Value: NOW(), Editable_If = FALSE
+Bukti waktu serah terima barang subuh.
+Tab 4: 4_TRANSAKSI_HARIAN
+Tabel inti transaksi harian seluruh cabang. Menggunakan pemisahan kolom kasir vs SPV serta Static Snapshot harga & komisi.
+
+Nama Kolom
+Tipe AppSheet
+Properti / Rumus
+Keterangan & Aturan Bisnis
+ID_TRX
+Text
+Key, Initial Value: TEXT([Tanggal], "YYYYMMDD") & "-" & [ID_SKU_CABANG]
+Mencegah input ganda SKU yang sama di cabang dan tanggal yang sama.
+Tanggal
+Date
+Initial Value: TODAY(), Editable_If = FALSE
+Tanggal operasional.
+Cabang_ID
+Text
+App Formula: [ID_SKU_CABANG].[Cabang_ID]
+Otomatis mengikuti cabang SKU.
+ID_MITRA
+Text
+App Formula: [ID_SKU_CABANG].[ID_MITRA]
+Kunci penggabungan payout lintas cabang (misal MTR-001 Budi).
+ID_SKU_CABANG
+Ref
+Source: 2_MASTER_SKU_CABANG (Filtered [Cabang_ID] = [_THISROW].[Cabang_ID] & [Status_SKU] = "AKTIF")
+Hanya menampilkan SKU aktif milik cabang tersebut.
+Harga_Snapshot
+Price
+Initial Value: [ID_SKU_CABANG].[Harga_Jual], Editable_If = FALSE, Reset on edit = OFF
+Mengunci harga saat transaksi dibuat agar histori kebal perubahan harga H+1.
+Komisi_Snapshot
+Price
+Initial Value: LOOKUP("ADMIN", "0_MASTER_USER_PARAM", "Role", "Komisi_Aktif_Global"), Editable_If = FALSE
+Mengunci komisi (1500 atau 2000) sebagai angka statis pada baris ini.
+MASUK_KASIR
+Number
+Editable_If: AND(LOOKUP(USEREMAIL(), ...)="KASIR", TIME(NOW()) <= "07:00:00", [Status_Closing_Ref]="BELUM_SETOR")
+Hanya diisi kasir pukul 05.00–07.00 WIB sesuai item yang datang.
+KOREKSI_MASUK_SPV
+Number
+Editable_If: AND(LOOKUP(USEREMAIL(), ...)="SPV", TIME(NOW()) <= "13:30:00", [Status_Closing_Ref]="BELUM_SETOR")
+Diisi SPV jika ada salah ketik kasir vs foto logbook TTD.
+MASUK_FINAL
+Number
+App Formula: IF(ISBLANK([KOREKSI_MASUK_SPV]), [MASUK_KASIR], [KOREKSI_MASUK_SPV])
+Angka barang masuk sah yang dipakai sistem.
+SISA_KASIR
+Number
+Editable_If: AND(LOOKUP(USEREMAIL(), ...)="KASIR", TIME(NOW()) >= "11:00:00", TIME(NOW()) <= "13:30:00", [Status_Closing_Ref]="BELUM_SETOR"), Valid_If: [_THIS] <= [MASUK_FINAL]
+Terbuka mulai pukul 11.00 WIB. Barang rusak/basi di lapak dimasukkan ke angka ini.
+KOREKSI_SISA_SPV
+Number
+Editable_If: AND(LOOKUP(USEREMAIL(), ...)="SPV", TIME(NOW()) <= "13:30:00", [Status_Closing_Ref]="BELUM_SETOR"), Valid_If: [_THIS] <= [MASUK_FINAL]
+Revisi sisa oleh SPV sebelum pukul 13.30 WIB & sebelum setor.
+SISA_FINAL
+Number
+App Formula: IF(ISBLANK([KOREKSI_SISA_SPV]), [SISA_KASIR], [KOREKSI_SISA_SPV])
+Angka sisa sah yang dipakai sistem.
+TERJUAL
+Number
+App Formula: [MASUK_FINAL] - [SISA_FINAL]
+Jumlah boks terjual bersih.
+Omset_Kotor
+Price
+App Formula: [TERJUAL] * [Harga_Snapshot]
+Total uang penjualan bruto SKU ini.
+Komisi_Kotor_L10
+Price
+App Formula: [TERJUAL] * [Komisi_Snapshot]
+Pendapatan komisi bruto Lapak Sepuluh.
+Omset_Bersih_Mitra
+Price
+App Formula: [Omset_Kotor] - [Komisi_Kotor_L10]
+Hak bersih mitra atas SKU ini.
+Log_Edit_SPV
+Text
+App Formula (saat kolom koreksi SPV terisi): USEREMAIL() & " @ " & TEXT(NOW(), "HH:MM:SS")
+Jejak audit permanen siapa SPV yang mengoreksi dan pukul berapa.
+Tab 5: 5_CLOSING_SETORAN
+Mengatur Blind Closing, pemotongan Pengeluaran Tunai Laci terhadap komisi aktual L10, penyelesaian Minus Tanpa Buffer, serta alur verifikasi Kasir  SPV  Manager/Owner.
+
+Nama Kolom
+Tipe AppSheet
+Properti / Rumus
+Keterangan & Aturan Bisnis
+ID_CLOSING
+Text
+Key, Initial Value: TEXT([Tanggal], "YYYYMMDD") & "-" & [Cabang_ID]
+1 dokumen closing per cabang per hari.
+Tanggal
+Date
+Initial Value: TODAY(), Editable_If = FALSE
+Tanggal closing.
+Cabang_ID
+Text
+Initial Value: LOOKUP(USEREMAIL(), "0_MASTER_USER_PARAM", "Email_User", "Cabang_Akses")
+Kode cabang.
+Pengeluaran_Tunai_Laci
+Price
+Required (isi 0 jika tidak ada belanja harian)
+Uang tunai laci untuk kresek, galon, kebersihan, dll.
+Ket_Pengeluaran
+Text
+Required_If: [Pengeluaran_Tunai_Laci] > 0
+Rincian item yang dibeli.
+Foto_Nota_Belanja
+Image
+Required_If: [Pengeluaran_Tunai_Laci] > 0, Gallery = OFF
+Foto struk belanja harian langsung via kamera.
+Cash_Fisik_Laci
+Price
+Required
+Total uang tunai fisik tersisa di laci yang siap disetor.
+Total_QRIS
+Price
+Required
+Total transaksi pembayaran QRIS/transfer pada hari tersebut.
+Foto_Settlement_QRIS
+Image
+Required, Gallery = OFF
+Foto rekap settlement mesin/aplikasi QRIS.
+Omset_Kotor_Sistem
+Price
+App Formula: SUM(SELECT(4_TRANSAKSI_HARIAN[Omset_Kotor], AND([Tanggal]=[_THISROW].[Tanggal], [Cabang_ID]=[_THISROW].[Cabang_ID])))
+Show_If: ISNOTBLANK([ID_CLOSING]) (Hanya muncul di Detail View setelah form disimpan!)
+Kunci Blind Closing: Disembunyikan saat kasir mengisi form agar tidak bisa mengarang angka setoran.
+Total_Pertanggungjawaban
+Price
+App Formula: [Cash_Fisik_Laci] + [Total_QRIS] + [Pengeluaran_Tunai_Laci]
+Total uang tunai + QRIS + nota belanja yang dipertanggungjawabkan kasir.
+Selisih_Kasir
+Price
+App Formula: [Total_Pertanggungjawaban] - [Omset_Kotor_Sistem]
+Show_If: CONTEXT("ViewType") <> "Form"
+0 = KLOP; negatif = MINUS; positif = PLUS.
+Penyelesaian_Minus
+Enum
+NOMBOK_TUNAI_HARI_INI, POTONG_GAJI_STAF
+Show_If: [Selisih_Kasir] < 0, Required_If: [Selisih_Kasir] < 0
+Aturan Nol Buffer: Kasir/staf wajib nombok tunai saat setor hari ini atau dicatat sebagai potongan gaji bulanan.
+Nominal_Wajib_Setor_Bank
+Price
+App Formula: IF(AND([Selisih_Kasir] < 0, [Penyelesaian_Minus] = "NOMBOK_TUNAI_HARI_INI"), [Cash_Fisik_Laci] + ABS([Selisih_Kasir]), [Cash_Fisik_Laci])
+Jumlah uang tunai yang wajib tertera pada slip setoran bank/BRILink hari itu.
+Komisi_Kotor_Cabang
+Price
+App Formula: SUM(SELECT(4_TRANSAKSI_HARIAN[Komisi_Kotor_L10], AND([Tanggal]=[_THISROW].[Tanggal], [Cabang_ID]=[_THISROW].[Cabang_ID])))
+Total komisi bruto cabang hari itu.
+Komisi_Aktual_L10
+Price
+App Formula: [Komisi_Kotor_Cabang] - [Pengeluaran_Tunai_Laci]
+Pendapatan komisi bersih L10 setelah dipotong pengeluaran harian cabang.
+Metode_Setor
+Enum
+SETOR_BANK_BRILINK, SERAH_TERIMA_SPV
+Jalur penyetoran uang tunai harian.
+Foto_Slip_Setor
+Image
+Required, Gallery = OFF
+Foto struk transfer/CDM bank/BRILink atau bukti serah terima SPV.
+Status_Closing
+Enum
+MENUNGGU_CEK_SPV, TERVERIFIKASI_SPV, LOCKED_SETTLED
+Default saat kasir simpan: MENUNGGU_CEK_SPV.
+Log_Validasi_SPV
+Text
+Otomatis terisi saat SPV menekan tombol [Validasi SPV]
+Nama/email SPV + timestamp validasi.
+Log_Mutasi_Owner
+Text
+Otomatis terisi saat Manager/Owner menekan [Konfirmasi Mutasi Masuk]
+Nama/email Owner/Manager + timestamp konfirmasi mutasi bank.
+Tab 6: 6_LOG_KOMPLAIN_MITRA
+Mencatat klaim produk basi/rusak dari konsumen yang di-refund total untuk memotong hak payout mitra secara otomatis.
+
+Nama Kolom
+Tipe AppSheet
+Properti / Rumus
+Keterangan & Aturan Bisnis
+ID_KOMPLAIN
+Text
+Key, Initial Value: "KMP-" & TEXT(NOW(), "YYYYMMDD-HHMMSS")
+ID unik klaim komplain.
+Tanggal_Kejadian
+Date
+Required
+Tanggal transaksi produk yang dikomplain (menentukan masuk siklus Sen–Rab atau Kam–Sab).
+Cabang_ID
+Enum
+CB-01 s.d. CB-10, Required
+Cabang tempat pembeli membeli produk.
+ID_MITRA
+Ref
+Source: 1_MASTER_MITRA, Required
+Mitra produsen yang menanggung potongan klaim.
+ID_SKU_CABANG
+Ref
+Source: 2_MASTER_SKU_CABANG
+Produk yang dikomplain.
+Qty_Komplain
+Number
+Required (minimal 1)
+Jumlah boks yang di-refund ke konsumen.
+Nominal_Potongan_Mitra
+Price
+App Formula: [Qty_Komplain] * ([ID_SKU_CABANG].[Harga_Jual] - LOOKUP("ADMIN", "0_MASTER_USER_PARAM", "Role", "Komisi_Aktif_Global")) (atau sesuai kebijakan nilai refund)
+Nominal yang otomatis memotong payout mitra pada siklus berjalan.
+Foto_Bukti_Komplain
+Image
+Required
+Bukti foto produk rusak/basi & bukti transfer refund ke konsumen.
+Tab 7: 7_REKAP_PAYOUT_3HARIAN
+Mesin agregasi pencairan mitra untuk siklus Senin–Rabu dan Kamis–Sabtu. Menggabungkan seluruh omset bersih mitra dari 10 cabang sekaligus merincinya per cabang.
+
+Nama Kolom
+Tipe AppSheet
+Properti / Rumus
+Keterangan & Aturan Bisnis
+ID_PAYOUT
+Text
+Key, Format: [Kode_Siklus] & "-" & [ID_MITRA]
+Contoh: 202611-S1-MTR001.
+Kode_Siklus
+Text
+Contoh: 2026-NOV-W4-SEN-RAB
+Identitas siklus 3-harian (SEN-RAB atau KAM-SAB).
+Tgl_Mulai
+Date
+Required
+Tanggal awal siklus (Senin atau Kamis).
+Tgl_Selesai
+Date
+Required
+Tanggal akhir siklus (Rabu atau Sabtu).
+ID_MITRA
+Ref
+Source: 1_MASTER_MITRA
+Mitra penerima transfer.
+Total_Qty_Terjual
+Number
+App Formula: SUM(SELECT(4_TRANSAKSI_HARIAN[TERJUAL], AND([ID_MITRA]=[_THISROW].[ID_MITRA], [Tanggal]>=[_THISROW].[Tgl_Mulai], [Tanggal]<=[_THISROW].[Tgl_Selesai], LOOKUP([Tanggal]&"-"&[Cabang_ID], "5_CLOSING_SETORAN", "ID_CLOSING", "Status_Closing")="LOCKED_SETTLED")))
+Hanya menghitung transaksi yang mutasi setorannya sudah dikonfirmasi Owner/Manager (LOCKED_SETTLED).
+Total_Bersih_10_Cabang
+Price
+App Formula: SUM(SELECT(4_TRANSAKSI_HARIAN[Omset_Bersih_Mitra], ...kondisi LOCKED_SETTLED yang sama...))
+Gabungan hak bersih mitra dari seluruh cabang tempat ia berjualan.
+Rincian_Per_Cabang
+LongText
+App Formula: Menggabungkan teks "CB-01: Rp " & ... untuk setiap cabang yang memiliki penjualan mitra tersebut > 0
+Menampilkan rincian nominal bersih per cabang (CB-01 s.d. CB-10).
+Total_Potongan_Komplain
+Price
+App Formula: SUM(SELECT(6_LOG_KOMPLAIN_MITRA[Nominal_Potongan_Mitra], AND([ID_MITRA]=[_THISROW].[ID_MITRA], [Tanggal_Kejadian]>=[_THISROW].[Tgl_Mulai], [Tanggal_Kejadian]<=[_THISROW].[Tgl_Selesai])))
+Total klaim komplain konsumen pada siklus 3 hari tersebut.
+Biaya_Admin_Bank
+Price
+App Formula: [ID_MITRA].[Biaya_Admin_Bank]
+Rp 0 untuk BRI/BNI.
+Total_Transfer_Diterima
+Price
+App Formula: MAX(LIST(0, [Total_Bersih_10_Cabang] - [Total_Potongan_Komplain] - [Biaya_Admin_Bank]))
+Nominal akhir bersih yang ditransfer ke rekening mitra.
+Status_Transfer
+Enum
+SIAP_TRANSFER, SUDAH_DITRANSFER
+Default SIAP_TRANSFER jika Total_Transfer_Diterima > 0.
+Bukti_Transfer_Admin
+Image
+Optional / Required saat ubah ke SUDAH_DITRANSFER
+Bukti transfer bank untuk dikirim ke mitra.
+Tab 8: 8_EXPORT_BANK_MASS
+Lembar kerja khusus format Mass Disbursement BRI CMS / BNI Direct. Menggunakan rumus Google Sheets QUERY di sel A2 agar admin keuangan tinggal mengunduh (File > Download > CSV / XLSX) tanpa menyunting manual:
+
+Excel
+
+=QUERY('7_REKAP_PAYOUT_3HARIAN'!A2:N, 
+  "SELECT F, G, H, L, B, A WHERE L > 0 AND M = 'SIAP_TRANSFER'", 0)
+
+(Sesuaikan urutan huruf kolom F, G, H, L, B, A dengan posisi kolom Bank_Tujuan, No_Rekening, Nama_Pemilik_Rek, Total_Transfer_Diterima, Kode_Siklus, dan ID_PAYOUT pada template resmi unggahan bulk transfer BRI/BNI Anda.)
+
+Tab 9: 9_PENGAJUAN_SKU_HARGA
+Alur Maker–Checker untuk penambahan SKU baru dan perubahan harga jual yang baru berlaku H+1 setelah disetujui Admin Pusat.
+
+Nama Kolom
+Tipe AppSheet
+Properti / Rumus
+Keterangan & Aturan Bisnis
+ID_PENGAJUAN
+Text
+Key, Initial Value: "REQ-" & TEXT(NOW(), "YYYYMMDD-HHMMSS")
+ID pengajuan.
+Email_SPV
+Email
+Initial Value: USEREMAIL(), Editable_If = FALSE
+Identitas SPV pengaju (Maker).
+Jenis_Pengajuan
+Enum
+TAMBAH_SKU_BARU, UBAH_HARGA_SKU
+Jenis perubahan master data.
+Cabang_ID
+Enum
+Valid_If: SPLIT(LOOKUP(USEREMAIL(), "0_MASTER_USER_PARAM", "Email_User", "Cabang_Akses"), ",")
+SPV hanya bisa mengajukan untuk 5 cabang binaannya.
+ID_MITRA
+Ref
+Source: 1_MASTER_MITRA
+Mitra pemilik produk.
+ID_SKU_LAMA
+Ref
+Show_If: [Jenis_Pengajuan] = "UBAH_HARGA_SKU", Required_If: [Jenis_Pengajuan] = "UBAH_HARGA_SKU"
+SKU eksisting yang akan diubah harganya.
+Nama_Produk_Usulan
+Text
+Required
+Nama produk baru atau nama produk yang diubah.
+Harga_Usulan
+Enum
+Pilihan wajib: 10000 atau 15000
+Harga jual baru yang diajukan.
+Skor_QC_Kemasan
+Number
+Valid_If: AND([_THIS] >= 0, [_THIS] <= 100)
+Bobot 30% (wajib untuk SKU baru).
+Skor_QC_Rasa
+Number
+Valid_If: AND([_THIS] >= 0, [_THIS] <= 100)
+Bobot 40%.
+Skor_QC_SuhuRuang
+Number
+Valid_If: AND([_THIS] >= 0, [_THIS] <= 100)
+Bobot 30% (uji ketahanan jam 05.00–14.00 WIB).
+Nilai_Akhir_QC
+Decimal
+App Formula: ([Skor_QC_Kemasan]*0.3) + ([Skor_QC_Rasa]*0.4) + ([Skor_QC_SuhuRuang]*0.3)
+Skor kelayakan produk.
+Foto_Sampel_QC
+Image
+Required, Gallery = OFF
+Bukti foto sampel fisik yang diuji SPV.
+Tanggal_Efektif
+Date
+Initial Value: TODAY() + 1, Valid_If: [_THIS] >= TODAY() + 1
+Pagar Anti-Fraud: Harga/SKU baru dilarang aktif di hari transaksi berjalan.
+Status_Approval
+Enum
+MENUNGGU_PUSAT, DISETUJUI, DITOLAK
+
+Valid_If: IF(AND([Jenis_Pengajuan]="TAMBAH_SKU_BARU", [Nilai_Akhir_QC] < 75), [_THIS] <> "DISETUJUI", TRUE)
+
+Otomatis menolak persetujuan SKU baru jika skor QC kurang dari 75.
+3. KONFIGURASI KEAMANAN & ISOLASI DATA (SECURITY FILTERS)
+Developer wajib memasang Security Filter pada tabel transaksi (3_BUKTI_INBOUND_SUBUH, 4_TRANSAKSI_HARIAN, 5_CLOSING_SETORAN) agar data antar-cabang terisolasi di tingkat server AppSheet sebelum data dikirim ke ponsel pengguna:
+
+Excel
+
+OR(
+  IN(LOOKUP(USEREMAIL(), "0_MASTER_USER_PARAM", "Email_User", "Role"), {"ADMIN_PUSAT", "MANAGER_OWNER"}),
+  AND(
+    LOOKUP(USEREMAIL(), "0_MASTER_USER_PARAM", "Email_User", "Role") = "SPV",
+    IN([Cabang_ID], SPLIT(LOOKUP(USEREMAIL(), "0_MASTER_USER_PARAM", "Email_User", "Cabang_Akses"), ","))
+  ),
+  AND(
+    LOOKUP(USEREMAIL(), "0_MASTER_USER_PARAM", "Email_User", "Role") = "KASIR",
+    [Cabang_ID] = LOOKUP(USEREMAIL(), "0_MASTER_USER_PARAM", "Email_User", "Cabang_Akses")
+  )
+)
+
+4. OTOMASI & TOMBOL AKSI (ACTIONS & AUTOMATION BOTS)
+4.1. Tombol 1-Klik Share Laporan Sisa ke Grup WA Cabang (Pukul 11.30 WIB)
+Target Tabel: 5_CLOSING_SETORAN (ditampilkan pada tampilan detail cabang pukul 11.00–12.00 WIB).
+Tipe Action: External: go to a website.
+Aturan Penting: Menampilkan seluruh item terdaftar di cabang tersebut (termasuk item dengan MASUK = 0) agar transparan di grup WA mitra cabang.
+Ekspresi Target URL:
+Excel
+
+"https://api.whatsapp.com/send?text=" & ENCODEURL(
+  "*LAPORAN PENJUALAN & SISA " & [Cabang_ID] & "*" & CHAR(10) &
+  "Tanggal: " & TEXT([Tanggal], "DD/MM/YYYY") & CHAR(10) &
+  "Batas pengambilan barang sisa maksimal pukul 12.00 WIB:" & CHAR(10) & CHAR(10) &
+  SUBSTITUTE(
+    TEXT(
+      SELECT(
+        4_TRANSAKSI_HARIAN[Format_Baris_WA],
+        AND([Tanggal] = [_THISROW].[Tanggal], [Cabang_ID] = [_THISROW].[Cabang_ID])
+      )
+    ),
+    " , ",
+    CHAR(10)
+  )
+)
+
+(Di mana kolom virtual [Format_Baris_WA] pada 4_TRANSAKSI_HARIAN berisi rumus: [ID_SKU_CABANG].[Nama_Produk] & " (" & [ID_MITRA].[Nama_Mitra] & ") | Masuk: " & [MASUK_FINAL] & " | Laku: " & [TERJUAL] & " | Sisa: " & [SISA_FINAL].)
+
+4.2. Tombol 1-Klik Kirim Rincian Payout Bersih ke WA Mitra (Tanpa Angka Komisi)
+Target Tabel: 7_REKAP_PAYOUT_3HARIAN.
+Tipe Action: External: go to a website.
+Aturan Penting: Sesuai kebijakan pencairan, pesan ini hanya menampilkan kuantitas terjual dan nominal omset bersih mitra (tidak menampilkan angka potongan komisi admin).
+Ekspresi Target URL:
+Excel
+
+"https://api.whatsapp.com/send?phone=" & [ID_MITRA].[No_WA_Mitra] & "&text=" & ENCODEURL(
+  "*RINCIAN PENCAIRAN DANA LAPAK SEPULUH*" & CHAR(10) &
+  "Mitra: " & [ID_MITRA].[Nama_Mitra] & " (" & [ID_MITRA] & ")" & CHAR(10) &
+  "Periode: " & [Kode_Siklus] & CHAR(10) & CHAR(10) &
+  "Total Produk Terjual: " & [Total_Qty_Terjual] & " pcs" & CHAR(10) &
+  "Rincian Bersih per Cabang:" & CHAR(10) & [Rincian_Per_Cabang] & CHAR(10) &
+  IF([Total_Potongan_Komplain] > 0, "Potongan Klaim Komplain: -Rp " & TEXT([Total_Potongan_Komplain], "#,##0") & CHAR(10), "") &
+  IF([Biaya_Admin_Bank] > 0, "Biaya Admin Transfer: -Rp " & TEXT([Biaya_Admin_Bank], "#,##0") & CHAR(10), "") &
+  "*Total Diterima (Transfer): Rp " & TEXT([Total_Transfer_Diterima], "#,##0") & "*" & CHAR(10) & CHAR(10) &
+  "Bukti transfer terlampir. Terima kasih."
+)
+
+4.3. Tiga Automation Bots Wajib di AppSheet
+Bot 1 — Validasi Setoran oleh SPV ([Validasi SPV]):
+Trigger: SPV menekan tombol action pada baris 5_CLOSING_SETORAN yang berstatus MENUNGGU_CEK_SPV.
+Proses: Mengubah Status_Closing menjadi "TERVERIFIKASI_SPV" dan mengisi Log_Validasi_SPV dengan USEREMAIL() & " - " & NOW().
+Bot 2 — Konfirmasi Mutasi Bank oleh Manager/Owner ([Konfirmasi Mutasi Masuk]):
+Trigger: Manager/Owner menekan tombol action pada slice Cek Mutasi Masuk (Status_Closing = "TERVERIFIKASI_SPV").
+Proses: Mengubah Status_Closing menjadi "LOCKED_SETTLED" dan mengisi Log_Mutasi_Owner. Mulai detik ini, seluruh baris transaksi cabang pada tanggal tersebut sah dihitung oleh tab 7_REKAP_PAYOUT_3HARIAN.
+Bot 3 — Sinkronisasi Master SKU/Harga H+1:
+Trigger: Status_Approval pada 9_PENGAJUAN_SKU_HARGA berubah menjadi "DISETUJUI" oleh ADMIN_PUSAT.
+Proses: Jika Jenis_Pengajuan = "TAMBAH_SKU_BARU", Bot menambahkan baris baru ke 2_MASTER_SKU_CABANG. Jika Jenis_Pengajuan = "UBAH_HARGA_SKU", Bot memperbarui kolom Harga_Jual pada baris ID_SKU_LAMA di 2_MASTER_SKU_CABANG.
+5. DESAIN ANTARMUKA PENGGUNA (UX VIEWS & SLICES PER ROLE)
+Agar aplikasi ringan dan tidak membingungkan staf lapangan, developer wajib membatasi tampilan menu (Show_If pada Views) berdasarkan Role:
+
+Role Pengguna
+Daftar Menu Utama di Navigasi Bawah AppSheet
+Kasir Cabang
+1. 1. Inbound Subuh (Foto logbook TTD + form input MASUK_KASIR hari ini)
+2. 2. Stok & Sisa (11.00) (Tampilan tabel Quick Edit untuk menginput SISA_KASIR mulai jam 11.00 WIB + tombol Share WA 11.30)
+3. 3. Blind Closing (Form input pengeluaran laci, cash fisik, QRIS, penyelesaian minus, & foto slip setor)
+SPV Klaster (5 Cabang)
+1. Audit Harian Cabang (Daftar 5 cabang binaan hari ini: cek foto logbook TTD vs input masuk)
+2. Koreksi Input (< 13.30) (Edit kolom KOREKSI_MASUK_SPV & KOREKSI_SISA_SPV sebelum setor)
+3. Verifikasi Setoran (Slice Status_Closing = "MENUNGGU_CEK_SPV" lengkap dengan foto slip setor & nota belanja)
+4. Ajukan SKU / Harga (Form 9_PENGAJUAN_SKU_HARGA dengan skor QC 3 pilar)
+Manager / Owner
+1. Cek Mutasi Masuk (Slice Status_Closing = "TERVERIFIKASI_SPV" + tombol 1-klik [Konfirmasi Mutasi Masuk])
+2. Dashboard 10 Cabang (Grafik omset harian, komisi aktual L10 setelah pengeluaran laci, dan daftar cabang minus)
+3. Log Audit & Koreksi SPV (Monitoring siapa SPV yang mengedit transaksi & riwayat potongan gaji staf)
+Admin Pusat
+1. Approval SKU & Harga (Slice Status_Approval = "MENUNGGU_PUSAT")
+2. Input Komplain Mitra (Form 6_LOG_KOMPLAIN_MITRA)
+3. Rekap Payout 3-Harian (Filter siklus Sen–Rab / Kam–Sab + tombol kirim rincian WA bersih ke mitra)
+4. Master Mitra & SKU (Pengelolaan 1_MASTER_MITRA, 2_MASTER_SKU_CABANG, dan ubah parameter komisi 1500/2000)
+
+6. GOOGLE APPS SCRIPT PEMELIHARAAN (AUTO-ARCHIVE BULANAN)
+Pasang skrip berikut di menu Extensions > Apps Script pada Google Sheets Induk dan atur Time-Driven Trigger berjalan setiap tanggal 5 pukul 02.00 WIB untuk memindahkan transaksi bulan lalu yang sudah LOCKED_SETTLED ke file arsip terpisah agar baris aktif AppSheet selalu di bawah 10.000 baris:
+
+JavaScript
+
+function arsipkanTransaksiBulanan() {
+  const ssAktif = SpreadsheetApp.getActiveSpreadsheet();
+  const sheetTrx = ssAktif.getSheetByName("4_TRANSAKSI_HARIAN");
+  const sheetClosing = ssAktif.getSheetByName("5_CLOSING_SETORAN");
+  
+  // Ganti ID di bawah dengan ID Spreadsheet Arsip Bulanan L10
+  const ID_SPREADSHEET_ARSIP = "ISI_ID_SPREADSHEET_ARSIP_DISINI";
+  const ssArsip = SpreadsheetApp.openById(ID_SPREADSHEET_ARSIP);
+  const arsipTrx = ssArsip.getSheetByName("ARSIP_TRANSAKSI");
+  
+  const today = new Date();
+  const batasTanggal = new Date(today.getFullYear(), today.getMonth(), 1); // Awal bulan berjalan
+  
+  // Kumpulkan ID_CLOSING yang sudah LOCKED_SETTLED sebelum bulan berjalan
+  const dataClosing = sheetClosing.getDataRange().getValues();
+  const settledKeys = new Set();
+  for (let i = 1; i < dataClosing.length; i++) {
+    const tglClosing = new Date(dataClosing[i][1]);
+    const statusClosing = dataClosing[i][18]; // Kolom Status_Closing
+    if (tglClosing < batasTanggal && statusClosing === "LOCKED_SETTLED") {
+      settledKeys.add(dataClosing[i][0]);
+    }
+  }
+  
+  // Pindahkan baris transaksi yang sudah settled ke spreadsheet arsip
+  const dataTrx = sheetTrx.getDataRange().getValues();
+  const barisDipindah = [];
+  const indeksHapus = [];
+  
+  for (let i = 1; i < dataTrx.length; i++) {
+    const tglTrx = new Date(dataTrx[i][1]);
+    const cabangId = dataTrx[i][2];
+    const keyCek = Utilities.formatDate(tglTrx, "GMT+7", "yyyyMMdd") + "-" + cabangId;
+    
+    if (tglTrx < batasTanggal && settledKeys.has(keyCek)) {
+      barisDipindah.push(dataTrx[i]);
+      indeksHapus.push(i + 1);
+    }
+  }
+  
+  if (barisDipindah.length > 0) {
+    arsipTrx.getRange(arsipTrx.getLastRow() + 1, 1, barisDipindah.length, barisDipindah[0].length)
+            .setValues(barisDipindah);
+    for (let j = indeksHapus.length - 1; j >= 0; j--) {
+      sheetTrx.deleteRow(indeksHapus[j]);
+    }
+  }
+}
+
+7. CHECKLIST VALIDASI SHADOW RUN 3 HARI (SEBELUM GO-LIVE 10 CABANG)
+Sebelum membuka 10 cabang baru secara serentak, developer dan tim operasional wajib menguji paralel selama 3 hari berturut-turut menggunakan skenario berikut:
+[ ] Uji 1 — Isolasi PIN & Multi-Cabang Mitra: Pastikan akun KASIR Cabang 01 tidak bisa melihat data Cabang 02, dan pastikan transaksi mitra Budi (MTR-001) di 3 cabang berbeda (Rp 10.000 dan Rp 15.000) terakumulasi menjadi 1 nominal transfer gabungan di 7_REKAP_PAYOUT_3HARIAN.
+[ ] Uji 2 — Foto Logbook TTD & Koreksi SPV: Verifikasi kamera HP kasir menolak unggahan dari galeri saat foto logbook subuh, serta pastikan koreksi angka oleh SPV sebelum pukul 13.30 WIB tersimpan di KOREKSI_MASUK_SPV tanpa menimpa MASUK_KASIR.
+[ ] Uji 3 — Blind Closing, Pengeluaran Laci & Minus Tanpa Buffer: Pastikan omset sistem tersembunyi saat kasir mengisi form closing; pengeluaran belanja harian memotong Komisi_Aktual_L10 (bukan payout mitra); dan selisih kas minus memaksa pilihan NOMBOK_TUNAI_HARI_INI atau POTONG_GAJI_STAF.
+[ ] Uji 4 — Share WA 11.30 & Rincian Payout Bersih: Pastikan pesan WA pukul 11.30 WIB memuat seluruh daftar item cabang, dan pesan WA rincian payout mitra hanya menampilkan kuantitas terjual serta nominal bersih diterima (tanpa angka potongan komisi).
+[ ] Uji 5 — Ekspor Mass Disbursement Bank & Approval H+1: Pastikan file ekspor dari 8_EXPORT_BANK_MASS diterima tanpa error oleh portal Mass Disbursement BRI/BNI, dan perubahan harga oleh SPV baru berlaku pada TODAY() + 1.
+

@@ -104,7 +104,7 @@ class PayoutController
         abort_if($items->isEmpty(), 404, 'Payout mitra tidak tersedia untuk dibayar.');
         $expected = (int) $items->sum('payout_amount');
         abort_unless((int) $validated['amount'] === $expected, 422, 'Nominal pembayaran tidak sesuai rekap payout.');
-        $proofPath = $request->file('proof')->store('payout-proofs', 'public');
+        $proofPath = $request->file('proof')->store('payout-proofs', 'local');
 
         DB::transaction(function () use ($validated, $proofPath, $cycle, $partner, $items, $request): void {
             $paymentId = DB::table('payout_payments')->insertGetId([
@@ -121,7 +121,7 @@ class PayoutController
             ]);
         });
 
-        return response()->json(['message' => 'Payout ditandai sudah dibayar.', 'proof_url' => Storage::disk('public')->url($proofPath)]);
+        return response()->json(['message' => 'Payout ditandai sudah dibayar.', 'proof_url' => null]);
     }
 
     public function eligible(Request $request): JsonResponse
@@ -162,7 +162,7 @@ class PayoutController
                 'partner_name' => $payment->partner_name,
                 'amount' => (int) $payment->amount,
                 'bank_reference' => $payment->bank_reference,
-                'proof_url' => $payment->proof_path ? Storage::disk('public')->url($payment->proof_path) : null,
+                'proof_url' => null,
                 'paid_by' => (int) $payment->paid_by,
                 'paid_at' => $payment->paid_at,
             ]);

@@ -121,7 +121,7 @@ class InboundOptionsController
         abort_unless($activeProducts->count() === $itemProductIds->count(), 422, 'Semua produk harus aktif di cabang dan milik mitra yang dipilih.');
 
         $photoPath = $request->hasFile('photo')
-            ? $request->file('photo')->store('inbounds', 'public')
+            ? $request->file('photo')->store('inbounds', 'local')
             : null;
 
         try {
@@ -181,7 +181,7 @@ class InboundOptionsController
             'message' => 'Barang masuk tersimpan sebagai draft.',
             'id' => $inboundId,
             'status' => 'DRAFT',
-            'photo_url' => $photoPath ? Storage::disk('public')->url($photoPath) : null,
+            'photo_url' => null,
         ], 201);
     }
 
@@ -219,7 +219,7 @@ class InboundOptionsController
                 'is_final' => $isFinal,
                 'final_label' => $isFinal ? 'Masuk Final' : null,
                 'photo_path' => $record->photo_path,
-                'photo_url' => $record->photo_path ? Storage::disk('public')->url($record->photo_path) : null,
+                'photo_url' => null,
                 'locked_at' => $record->locked_at,
                 'items' => $items,
             ],
@@ -235,9 +235,9 @@ class InboundOptionsController
         abort_unless($record !== null, 404, 'Catatan barang masuk tidak ditemukan.');
         $this->branchId($request->merge(['branch_id' => $record->branch_id]));
         abort_unless($record->photo_path !== null, 404, 'Bukti foto belum tersedia.');
-        abort_unless(Storage::disk('public')->exists($record->photo_path), 404, 'Bukti foto tidak ditemukan.');
+        abort_unless(Storage::disk('local')->exists($record->photo_path), 404, 'Bukti foto tidak ditemukan.');
 
-        return Storage::disk('public')->download($record->photo_path);
+        return Storage::disk('local')->download($record->photo_path);
     }
 
     public function finalForOpname(Request $request): JsonResponse

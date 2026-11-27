@@ -1,6 +1,6 @@
 {
   "repo": "erp lapak 10",
-  "generatedForCommit": "ba5eee345bd14bb5cf838f110ab0894ab6bb050a",
+  "generatedForCommit": "326ea0f0fd9ba7871b93485ada5d11f7a137e904",
   "files": [
     {
       "path": ".claude/skills/ngodingpakeai/SKILL.md",
@@ -60,19 +60,19 @@
       "path": "app/Http/Controllers/Api/DailyClosingController.php",
       "reason": "needs_summary",
       "language": "php",
-      "size": 11408
+      "size": 11213
     },
     {
       "path": "app/Http/Controllers/Api/InboundOptionsController.php",
       "reason": "needs_summary",
       "language": "php",
-      "size": 13391
+      "size": 13258
     },
     {
       "path": "app/Http/Controllers/Api/PayoutController.php",
-      "reason": "changed",
+      "reason": "needs_summary",
       "language": "php",
-      "size": 10360
+      "size": 10247
     },
     {
       "path": "app/Http/Controllers/Api/StockOpnameController.php",
@@ -102,7 +102,7 @@
       "path": "app/Services/PayoutAggregationService.php",
       "reason": "needs_summary",
       "language": "php",
-      "size": 2192
+      "size": 2181
     },
     {
       "path": "app.js",
@@ -145,6 +145,12 @@
       "reason": "needs_summary",
       "language": "javascript",
       "size": 2343
+    },
+    {
+      "path": "AUDIT_REPORT.md",
+      "reason": "needs_summary",
+      "language": "markdown",
+      "size": 2751
     },
     {
       "path": "closing.css",
@@ -267,6 +273,60 @@
       "size": 617
     },
     {
+      "path": "docs/DATA_MAPPING.md",
+      "reason": "changed",
+      "language": "markdown",
+      "size": 1977
+    },
+    {
+      "path": "docs/HTML_PROTOTYPE_EXTRACT.txt",
+      "reason": "new",
+      "language": null,
+      "size": 1203
+    },
+    {
+      "path": "docs/IMPLEMENTATION_PLAN.md",
+      "reason": "changed",
+      "language": "markdown",
+      "size": 1869
+    },
+    {
+      "path": "docs/MILESTONE_READINESS_REPORT.md",
+      "reason": "new",
+      "language": "markdown",
+      "size": 11985
+    },
+    {
+      "path": "docs/OPEN_BUSINESS_DECISIONS.md",
+      "reason": "changed",
+      "language": "markdown",
+      "size": 1678
+    },
+    {
+      "path": "docs/references/prototype_appsheet_google_sheets_l10_10_cabang_mvp.html",
+      "reason": "new",
+      "language": "html",
+      "size": 168309
+    },
+    {
+      "path": "docs/REQUIREMENT_RECONCILIATION.md",
+      "reason": "changed",
+      "language": "markdown",
+      "size": 4878
+    },
+    {
+      "path": "docs/SRS_EXTRACT.txt",
+      "reason": "new",
+      "language": null,
+      "size": 29088
+    },
+    {
+      "path": "docs/XLSX_EXTRACT.txt",
+      "reason": "new",
+      "language": null,
+      "size": 1139
+    },
+    {
       "path": "erp-lapak-sepuluh-PRD.md",
       "reason": "needs_summary",
       "language": "markdown",
@@ -312,7 +372,7 @@
       "path": "payout.js",
       "reason": "needs_summary",
       "language": "javascript",
-      "size": 5383
+      "size": 4594
     },
     {
       "path": "PRODUCT.md",

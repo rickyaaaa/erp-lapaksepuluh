@@ -1,0 +1,13 @@
+SHEET Sheet1
+kode | Nama Mitra | Kode SKU | Nama Produk | HARGA | MASUK | SISA | TERJUAL | Omset Kotor | Komisi Admin | Omset Bersih | TOTAL PAYOUT | STATUS
+LS01 | Zahra Jauza N. | LS01-01 | Nasi Jeruk Chicken Karage | 1OK | 8.0 | 0.0 | 8 | 80000 | 12000 | 68000 |  | 
+ |  | LS01-02 | Nasi Merah Chicken Karage | 12K | 4.0 | 1.0 | 3 | 36000 | 4500 | 31500 | 225500 | 
+ |  | LS01-03 | Pisang Berendam | 12K | 3.0 | 2.0 | 1 | 12000 | 1500 | 10500 |  | 
+ |  | LS01-04 | Roti Poket | 12K | 6.0 | 4.0 | 2 | 24000 | 3000 | 21000 |  | 
+ |  | LS01-05 | Cilok Ayam | 12K | 5.0 | 1.0 | 4 | 48000 | 6000 | 42000 |  | 
+ |  | LS01-06 | Sale Pisang | 15K | 11.0 | 11.0 | 0 | 0 | 0 | 0 |  | 
+ |  | LS01-07 | Nasi Ayam Serundeng | 12K | 5.0 | 0.0 | 5 | 60000 | 7500 | 52500 |  | 
+LS02 | Ardela Febrianti | LS02-01 | Samyang bites | 12K | 6.0 | 0.0 | 6 | 72000 | 9000 | 63000 | 63000 | 
+LS04 | Nisa Nurhasanah | LS04-01 | Nasi Bakar ayam suwir | 12K | 9.0 | 4.0 | 5 | 60000 | 7500 | 52500 |  | 
+ |  | LS04-02 | Putri Noong | 1OK | 5.0 | 0.0 | 5 | 50000 | 7500 | 42500 | 237500 | 
+ |  | LS04-03 | Cimol Crispy | 12K |  |  | 0 | 0 | 0 | 0 |  | 
