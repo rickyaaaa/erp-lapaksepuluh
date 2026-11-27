@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('inbounds:lock-morning')
     ->everyMinute()
